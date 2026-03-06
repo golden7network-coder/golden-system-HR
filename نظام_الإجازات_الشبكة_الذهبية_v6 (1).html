@@ -1,0 +1,2318 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>نظام إدارة الإجازات</title>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --navy: #0d1b2a;
+  --blue: #1a3c5e;
+  --mid: #2563a8;
+  --accent: #3b82f6;
+  --gold: #f59e0b;
+  --red: #ef4444;
+  --orange: #f97316;
+  --green: #10b981;
+  --purple: #8b5cf6;
+  --teal: #14b8a6;
+  --sky: #0ea5e9;
+  --bg: #f0f4f8;
+  --card: #ffffff;
+  --border: #e2e8f0;
+  --text: #1e293b;
+  --muted: #64748b;
+  --light: #f8fafc;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'Tajawal',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; }
+
+/* ── TOP BAR ── */
+.topbar {
+  background: linear-gradient(135deg, var(--navy) 0%, var(--blue) 100%);
+  padding: 0 2rem;
+  display: flex; align-items: center; justify-content: space-between;
+  height: 68px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+  position: sticky; top:0; z-index:100;
+}
+.topbar-title { color:#fff; font-size:1.3rem; font-weight:800; display:flex; align-items:center; gap:.6rem; }
+.topbar-title span { font-size:1.6rem; }
+.topbar-sub { color:#94a3b8; font-size:.8rem; font-weight:400; }
+.nav-tabs { display:flex; gap:.25rem; }
+.nav-tab {
+  padding: .5rem 1.1rem; border-radius:8px; cursor:pointer;
+  color:#94a3b8; font-size:.88rem; font-weight:600;
+  transition:all .2s; border:none; background:transparent; font-family:'Tajawal',sans-serif;
+}
+.nav-tab:hover { background:rgba(255,255,255,.1); color:#fff; }
+.nav-tab.active { background:var(--accent); color:#fff; }
+
+/* ── VIEWS ── */
+.view { display:none; padding:1.5rem 2rem; animation: fadeIn .3s ease; }
+.view.active { display:block; }
+@keyframes fadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+
+/* ── KPI CARDS ── */
+.kpi-grid { display:grid; grid-template-columns:repeat(6,1fr); gap:1rem; margin-bottom:1.5rem; }
+.kpi-card {
+  background:var(--card); border-radius:12px; padding:1.1rem 1rem;
+  box-shadow:0 2px 8px rgba(0,0,0,.07); border-top:4px solid;
+  text-align:center; transition:transform .2s;
+}
+.kpi-card:hover { transform:translateY(-3px); }
+.kpi-num { font-size:2.2rem; font-weight:900; line-height:1; margin-bottom:.3rem; }
+.kpi-label { font-size:.78rem; color:var(--muted); font-weight:600; }
+
+/* ── SECTION HEADER ── */
+.sec-header {
+  display:flex; align-items:center; justify-content:space-between;
+  margin-bottom:1rem;
+}
+.sec-title { font-size:1.1rem; font-weight:800; color:var(--navy); display:flex; align-items:center; gap:.5rem; }
+.sec-title::before { content:''; width:4px; height:22px; background:var(--accent); border-radius:4px; display:inline-block; }
+
+/* ── TABLE ── */
+.table-wrap { background:var(--card); border-radius:14px; box-shadow:0 2px 12px rgba(0,0,0,.07); overflow:hidden; }
+table { width:100%; border-collapse:collapse; font-size:.87rem; }
+thead th {
+  background: linear-gradient(135deg, var(--navy), var(--blue));
+  color:#fff; padding:.75rem .9rem; font-weight:700; font-size:.82rem;
+  white-space:nowrap;
+}
+tbody tr { border-bottom:1px solid var(--border); transition:background .15s; }
+tbody tr:hover { background:#f0f7ff; }
+tbody tr:nth-child(even) { background:#f8fafc; }
+tbody tr:nth-child(even):hover { background:#e8f4ff; }
+td { padding:.65rem .9rem; }
+.badge {
+  display:inline-block; padding:.2rem .7rem; border-radius:20px;
+  font-size:.75rem; font-weight:700; white-space:nowrap;
+}
+.badge-red { background:#fee2e2; color:#dc2626; }
+.badge-orange { background:#ffedd5; color:#ea580c; }
+.badge-green { background:#d1fae5; color:#059669; }
+.badge-purple { background:#ede9fe; color:#7c3aed; }
+.badge-teal { background:#ccfbf1; color:#0d9488; }
+.badge-blue { background:#dbeafe; color:#2563eb; }
+.badge-gray { background:#f1f5f9; color:#475569; }
+
+/* ── FORM CARD ── */
+.form-card {
+  background:var(--card); border-radius:16px;
+  box-shadow:0 4px 20px rgba(0,0,0,.08); overflow:hidden;
+  max-width:760px; margin:0 auto;
+}
+.form-header {
+  background: linear-gradient(135deg, var(--navy), var(--blue));
+  padding:1.4rem 2rem; color:#fff;
+}
+.form-header h2 { font-size:1.3rem; font-weight:800; margin-bottom:.2rem; }
+.form-header p { font-size:.85rem; color:#94a3b8; }
+.form-body { padding:1.8rem 2rem; }
+.form-grid { display:grid; grid-template-columns:1fr 1fr; gap:1.2rem; }
+.form-group { display:flex; flex-direction:column; gap:.4rem; }
+.form-group.full { grid-column:1/-1; }
+.form-group label { font-size:.82rem; font-weight:700; color:var(--navy); }
+.form-group select, .form-group input {
+  padding:.65rem .9rem; border:2px solid var(--border); border-radius:10px;
+  font-family:'Tajawal',sans-serif; font-size:.9rem; color:var(--text);
+  background:#fff; transition:border .2s, box-shadow .2s; outline:none;
+  appearance:none; -webkit-appearance:none;
+}
+.form-group select:focus, .form-group input:focus {
+  border-color:var(--accent); box-shadow:0 0 0 3px rgba(59,130,246,.15);
+}
+.form-actions { display:flex; gap:.8rem; margin-top:1.5rem; padding-top:1.2rem; border-top:1px solid var(--border); }
+.btn {
+  padding:.7rem 1.5rem; border-radius:10px; cursor:pointer; font-family:'Tajawal',sans-serif;
+  font-size:.92rem; font-weight:700; border:none; transition:all .2s;
+  display:flex; align-items:center; gap:.4rem;
+}
+.btn-primary { background:var(--accent); color:#fff; flex:1; justify-content:center; }
+.btn-primary:hover { background:#1d4ed8; transform:translateY(-1px); box-shadow:0 4px 14px rgba(59,130,246,.4); }
+.btn-secondary { background:var(--border); color:var(--text); }
+.btn-secondary:hover { background:#cbd5e1; }
+.btn-danger { background:#fee2e2; color:#dc2626; }
+.btn-danger:hover { background:#fecaca; }
+.btn-success { background:#d1fae5; color:#059669; }
+.btn-success:hover { background:#a7f3d0; }
+
+/* ── TOAST ── */
+.toast {
+  position:fixed; bottom:2rem; left:50%; transform:translateX(-50%) translateY(100px);
+  background:#1e293b; color:#fff; padding:.8rem 1.5rem; border-radius:12px;
+  font-weight:600; font-size:.9rem; transition:transform .3s cubic-bezier(.34,1.56,.64,1);
+  z-index:999; box-shadow:0 8px 30px rgba(0,0,0,.3); display:flex; align-items:center; gap:.5rem;
+}
+.toast.show { transform:translateX(-50%) translateY(0); }
+.toast.success { border-right:4px solid var(--green); }
+.toast.error { border-right:4px solid var(--red); }
+
+/* ── EMPLOYEE DASHBOARD ── */
+.emp-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:1rem; }
+.emp-card {
+  background:var(--card); border-radius:14px; padding:1.2rem;
+  box-shadow:0 2px 8px rgba(0,0,0,.07); cursor:pointer;
+  transition:all .2s; border:2px solid transparent;
+}
+.emp-card:hover { border-color:var(--accent); transform:translateY(-2px); box-shadow:0 8px 20px rgba(0,0,0,.12); }
+.emp-card-header { display:flex; align-items:center; gap:.8rem; margin-bottom:1rem; }
+.emp-avatar {
+  width:44px; height:44px; border-radius:50%; display:flex; align-items:center;
+  justify-content:center; font-size:1.1rem; font-weight:800; color:#fff; flex-shrink:0;
+}
+.emp-name { font-weight:800; font-size:.95rem; color:var(--navy); }
+.emp-dept { font-size:.78rem; color:var(--muted); }
+.emp-stats { display:grid; grid-template-columns:repeat(3,1fr); gap:.4rem; }
+.emp-stat { text-align:center; padding:.4rem; border-radius:8px; }
+.emp-stat-num { font-size:1.1rem; font-weight:900; }
+.emp-stat-label { font-size:.65rem; color:var(--muted); font-weight:600; }
+
+/* ── FILTERS ── */
+.filters { display:flex; gap:.7rem; margin-bottom:1.2rem; flex-wrap:wrap; align-items:center; }
+.filter-select {
+  padding:.5rem .9rem; border:2px solid var(--border); border-radius:8px;
+  font-family:'Tajawal',sans-serif; font-size:.85rem; background:#fff;
+  color:var(--text); outline:none; cursor:pointer; appearance:none; -webkit-appearance:none;
+}
+.filter-select:focus { border-color:var(--accent); }
+.filter-label { font-size:.82rem; font-weight:700; color:var(--muted); }
+
+/* ── MODAL ── */
+.modal-overlay {
+  position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:200;
+  display:none; align-items:center; justify-content:center;
+  backdrop-filter:blur(4px);
+}
+.modal-overlay.open { display:flex; }
+.modal {
+  background:var(--card); border-radius:18px; width:90%; max-width:700px;
+  max-height:85vh; overflow-y:auto; box-shadow:0 20px 60px rgba(0,0,0,.3);
+  animation: popIn .3s cubic-bezier(.34,1.56,.64,1);
+}
+@keyframes popIn { from{opacity:0;transform:scale(.9)} to{opacity:1;transform:scale(1)} }
+.modal-header {
+  background: linear-gradient(135deg, var(--navy), var(--blue));
+  padding:1.2rem 1.5rem; color:#fff; border-radius:18px 18px 0 0;
+  display:flex; align-items:center; justify-content:space-between;
+}
+.modal-close { background:none; border:none; color:#fff; font-size:1.4rem; cursor:pointer; opacity:.7; }
+.modal-close:hover { opacity:1; }
+.modal-body { padding:1.5rem; }
+.modal-kpi-row { display:grid; grid-template-columns:repeat(3,1fr); gap:.8rem; margin-bottom:1.2rem; }
+.modal-kpi { padding:.8rem; border-radius:10px; text-align:center; }
+.modal-kpi .num { font-size:1.6rem; font-weight:900; }
+.modal-kpi .lbl { font-size:.72rem; color:var(--muted); font-weight:600; margin-top:.1rem; }
+
+/* ── EMPTY STATE ── */
+.empty { text-align:center; padding:3rem; color:var(--muted); }
+.empty-icon { font-size:3rem; margin-bottom:.8rem; }
+.empty-text { font-size:1rem; font-weight:600; }
+
+/* ── STATS BAR ── */
+.stats-bar { display:flex; gap:1.5rem; background:var(--card); border-radius:12px; padding:1rem 1.5rem; margin-bottom:1.2rem; box-shadow:0 2px 8px rgba(0,0,0,.06); flex-wrap:wrap; }
+.stats-item { display:flex; align-items:center; gap:.5rem; }
+.stats-dot { width:10px; height:10px; border-radius:50%; flex-shrink:0; }
+.stats-text { font-size:.82rem; font-weight:600; color:var(--text); }
+.stats-num { font-weight:900; color:var(--navy); }
+
+/* ── PROGRESS ── */
+.progress-wrap { background:var(--border); border-radius:999px; height:6px; overflow:hidden; }
+.progress-bar { height:100%; border-radius:999px; transition:width .5s ease; }
+
+/* ── PAGINATION ── */
+.pagination { display:flex; align-items:center; justify-content:center; gap:.4rem; padding:1rem; border-top:1px solid var(--border); }
+.page-btn { padding:.4rem .8rem; border-radius:6px; border:1px solid var(--border); background:#fff; cursor:pointer; font-family:'Tajawal',sans-serif; font-size:.82rem; transition:all .15s; }
+.page-btn:hover, .page-btn.active { background:var(--accent); color:#fff; border-color:var(--accent); }
+
+/* responsive */
+@media(max-width:768px){
+  .kpi-grid { grid-template-columns:repeat(3,1fr); }
+  .form-grid { grid-template-columns:1fr; }
+  .topbar { padding:0 1rem; }
+  .view { padding:1rem; }
+  .nav-tab { padding:.4rem .7rem; font-size:.78rem; }
+}
+
+/* salary view extras */
+.salary-rule { background:var(--card); border-radius:10px; padding:.7rem .9rem; border-left:3px solid; font-size:.83rem; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-title">
+    <span>📋</span>
+    <div>
+      نظام إدارة الإجازات
+      <div class="topbar-sub">رصد وتتبع 30 موظف</div>
+    </div>
+  </div>
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="showView('dashboard')">الداشبورد</button>
+    <button class="nav-tab" onclick="showView('entry')">➕ إضافة إجازة</button>
+    <button class="nav-tab" onclick="showView('log')">سجل الإجازات</button>
+    <button class="nav-tab" onclick="showView('employees')">الموظفون</button>
+    <button class="nav-tab" onclick="showView('reports')">التقارير</button>
+    <button class="nav-tab" onclick="showView('salary')" style="background:var(--green);color:#fff">💰 الرواتب</button>
+    <button class="nav-tab" onclick="showView('manage')">⚙️ إدارة الموظفين</button>
+    <button class="nav-tab" onclick="showView('backup')" style="background:#f59e0b;color:#fff">💾 نسخ احتياطي</button>
+    <button class="nav-tab" onclick="showView('cloud')" style="background:#7c3aed;color:#fff">☁️ مزامنة لايف</button>
+  </div>
+  <div style="display:flex;align-items:center;gap:.6rem;margin-right:.5rem">
+    <div style="font-size:.8rem;color:#94a3b8;display:flex;align-items:center;gap:.4rem">
+      <span>👤</span><span id="cur-user-lbl">—</span>
+      <span id="cur-role-badge" style="font-size:.7rem;padding:.1rem .5rem;border-radius:20px;color:#fff;font-weight:700"></span>
+    </div>
+    <button id="btn-users-mgr" onclick="openUsersModal()" style="display:none;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);color:#fff;border-radius:7px;padding:.3rem .7rem;cursor:pointer;font-size:.78rem;font-family:'Tajawal',sans-serif">👥</button>
+    <button onclick="doLogout()" style="background:#ef4444;border:none;color:#fff;border-radius:8px;padding:.35rem .8rem;cursor:pointer;font-size:.82rem;font-weight:700;font-family:'Tajawal',sans-serif">خروج ↩</button>
+  </div>
+</div>
+
+<!-- ═══ DASHBOARD ═══ -->
+<div class="view active" id="view-dashboard">
+  <div class="kpi-grid">
+    <div class="kpi-card" style="border-color:var(--mid)">
+      <div class="kpi-num" style="color:var(--mid)" id="kpi-total">30</div>
+      <div class="kpi-label">إجمالي الموظفين</div>
+    </div>
+    <div class="kpi-card" style="border-color:var(--red)">
+      <div class="kpi-num" style="color:var(--red)" id="kpi-absent">0</div>
+      <div class="kpi-label">أيام الغياب</div>
+    </div>
+    <div class="kpi-card" style="border-color:var(--orange)">
+      <div class="kpi-num" style="color:var(--orange)" id="kpi-sick">0</div>
+      <div class="kpi-label">إجازة مرضية</div>
+    </div>
+    <div class="kpi-card" style="border-color:var(--green)">
+      <div class="kpi-num" style="color:var(--green)" id="kpi-annual">0</div>
+      <div class="kpi-label">إجازة سنوية</div>
+    </div>
+    <div class="kpi-card" style="border-color:var(--purple)">
+      <div class="kpi-num" style="color:var(--purple)" id="kpi-permission">0</div>
+      <div class="kpi-label">استئذان</div>
+    </div>
+    <div class="kpi-card" style="border-color:var(--teal)">
+      <div class="kpi-num" style="color:var(--teal)" id="kpi-emergency">0</div>
+      <div class="kpi-label">إجازة طارئة</div>
+    </div>
+  </div>
+
+  <div class="sec-header">
+    <div class="sec-title">ملخص الموظفين</div>
+    <div style="display:flex;gap:.5rem">
+      <select class="filter-select" id="dash-filter-dept" onchange="renderDashboard()">
+        <option value="">جميع الأقسام</option>
+      </select>
+      <select class="filter-select" id="dash-filter-month" onchange="renderDashboard()">
+        <option value="">جميع الأشهر</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>اسم الموظف</th>
+          <th>القسم</th>
+          <th>غياب</th>
+          <th>مرضية</th>
+          <th>سنوية</th>
+          <th>استئذان</th>
+          <th>طارئة</th>
+          <th>رسمية</th>
+          <th>المجموع</th>
+          <th>رصيد سنوي متبقي</th>
+          <th>التقييم</th>
+        </tr>
+      </thead>
+      <tbody id="dash-tbody"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ═══ ENTRY FORM ═══ -->
+<div class="view" id="view-entry">
+  <div class="form-card">
+    <div class="form-header">
+      <h2>➕ إضافة إجازة أو غياب</h2>
+      <p>أدخل بيانات الإجازة وستُحفظ تلقائياً وتتحدث جميع التقارير</p>
+    </div>
+    <div class="form-body">
+      <div class="form-grid">
+        <div class="form-group">
+          <label>اسم الموظف *</label>
+          <select id="f-employee">
+            <option value="">-- اختر الموظف --</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>القسم</label>
+          <input id="f-dept" readonly placeholder="يُملأ تلقائياً" style="background:#f8fafc;color:var(--muted)">
+        </div>
+        <div class="form-group">
+          <label>الشهر *</label>
+          <select id="f-month">
+            <option value="">-- اختر الشهر --</option>
+            <option>يناير 2026</option><option>فبراير 2026</option><option>مارس 2026</option>
+            <option>أبريل 2026</option><option>مايو 2026</option><option>يونيو 2026</option>
+            <option>يوليو 2026</option><option>أغسطس 2026</option><option>سبتمبر 2026</option>
+            <option>أكتوبر 2026</option><option>نوفمبر 2026</option><option>ديسمبر 2026</option>
+            <option>يناير 2025</option><option>فبراير 2025</option><option>مارس 2025</option>
+            <option>أبريل 2025</option><option>مايو 2025</option><option>يونيو 2025</option>
+            <option>يوليو 2025</option><option>أغسطس 2025</option><option>سبتمبر 2025</option>
+            <option>أكتوبر 2025</option><option>نوفمبر 2025</option><option>ديسمبر 2025</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>التاريخ *</label>
+          <input type="date" id="f-date">
+        </div>
+        <div class="form-group">
+          <label>نوع اليوم *</label>
+          <select id="f-daytype">
+            <option value="">-- اختر --</option>
+            <option>غياب</option>
+            <option>إجازة</option>
+            <option>استئذان</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>نوع الإجازة *</label>
+          <select id="f-leavetype">
+            <option value="">-- اختر --</option>
+            <option>غياب</option>
+            <option>إجازة مرضية</option>
+            <option>إجازة سنوية</option>
+            <option>استئذان</option>
+            <option>إجازة طارئة</option>
+            <option>إجازة رسمية</option>
+          </select>
+        </div>
+        <div class="form-group full">
+          <label>ملاحظات</label>
+          <input type="text" id="f-notes" placeholder="أي ملاحظات إضافية (اختياري)">
+        </div>
+      </div>
+
+      <!-- Multi-day toggle -->
+      <div style="margin-top:1rem;padding:1rem;background:#f0f7ff;border-radius:10px;border:1px dashed var(--accent)">
+        <label style="display:flex;align-items:center;gap:.6rem;cursor:pointer;font-weight:700;font-size:.88rem;color:var(--navy)">
+          <input type="checkbox" id="f-multiday" onchange="toggleMultiday()" style="width:18px;height:18px;accent-color:var(--accent)">
+          📅 إجازة متعددة الأيام (أدخل فترة دفعة واحدة)
+        </label>
+        <div id="multiday-fields" style="display:none;margin-top:.8rem;display:none">
+          <div class="form-grid" style="grid-template-columns:1fr 1fr">
+            <div class="form-group">
+              <label>من تاريخ</label>
+              <input type="date" id="f-startdate">
+            </div>
+            <div class="form-group">
+              <label>إلى تاريخ</label>
+              <input type="date" id="f-enddate">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button class="btn btn-primary" onclick="saveEntry()">💾 حفظ الإجازة</button>
+        <button class="btn btn-secondary" onclick="clearForm()">🔄 مسح</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ LOG ═══ -->
+<div class="view" id="view-log">
+  <div class="sec-header">
+    <div class="sec-title">سجل الإجازات الكامل</div>
+    <div style="display:flex;gap:.5rem;flex-wrap:wrap">
+      <select class="filter-select" id="log-filter-emp" onchange="renderLog()">
+        <option value="">جميع الموظفين</option>
+      </select>
+      <select class="filter-select" id="log-filter-type" onchange="renderLog()">
+        <option value="">جميع الأنواع</option>
+        <option>غياب</option><option>إجازة مرضية</option><option>إجازة سنوية</option>
+        <option>استئذان</option><option>إجازة طارئة</option><option>إجازة رسمية</option>
+      </select>
+      <select class="filter-select" id="log-filter-month" onchange="renderLog()">
+        <option value="">جميع الأشهر</option>
+      </select>
+      <button class="btn btn-danger" onclick="clearAllConfirm()" style="padding:.4rem .9rem;font-size:.82rem">🗑️ حذف الكل</button>
+      <button class="btn btn-success" onclick="exportCSV()" style="padding:.4rem .9rem;font-size:.82rem">📥 تصدير CSV</button>
+    </div>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>الموظف</th>
+          <th>القسم</th>
+          <th>الشهر</th>
+          <th>التاريخ</th>
+          <th>نوع اليوم</th>
+          <th>نوع الإجازة</th>
+          <th>ملاحظات</th>
+          <th>حذف</th>
+        </tr>
+      </thead>
+      <tbody id="log-tbody"></tbody>
+    </table>
+    <div class="pagination" id="log-pagination"></div>
+  </div>
+</div>
+
+<!-- ═══ EMPLOYEES ═══ -->
+<div class="view" id="view-employees">
+  <div class="sec-header">
+    <div class="sec-title">داشبورد الموظفين</div>
+    <div style="display:flex;gap:.5rem">
+      <select class="filter-select" id="emp-filter-dept" onchange="renderEmployees()">
+        <option value="">جميع الأقسام</option>
+      </select>
+      <input class="filter-select" type="text" id="emp-search" placeholder="🔍 بحث باسم الموظف..." oninput="renderEmployees()" style="min-width:180px">
+    </div>
+  </div>
+  <div class="emp-grid" id="emp-grid"></div>
+</div>
+
+<!-- ═══ REPORTS ═══ -->
+<div class="view" id="view-reports">
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem">
+    <div>
+      <div class="sec-title" style="margin-bottom:1rem">الأكثر غياباً</div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>#</th><th>الموظف</th><th>أيام الغياب</th><th>التقييم</th></tr></thead>
+          <tbody id="report-absent"></tbody>
+        </table>
+      </div>
+    </div>
+    <div>
+      <div class="sec-title" style="margin-bottom:1rem">الأكثر إجازة مرضية</div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>#</th><th>الموظف</th><th>أيام مرضية</th><th>التقييم</th></tr></thead>
+          <tbody id="report-sick"></tbody>
+        </table>
+      </div>
+    </div>
+    <div>
+      <div class="sec-title" style="margin-bottom:1rem">رصيد الإجازة السنوية المتبقي</div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>#</th><th>الموظف</th><th>مستخدم</th><th>متبقي</th><th>التقدم</th></tr></thead>
+          <tbody id="report-annual"></tbody>
+        </table>
+      </div>
+    </div>
+    <div>
+      <div class="sec-title" style="margin-bottom:1rem">توزيع الإجازات حسب القسم</div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>القسم</th><th>إجمالي الأيام</th><th>غياب</th><th>مرضية</th><th>سنوية</th></tr></thead>
+          <tbody id="report-dept"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SALARY & DEDUCTIONS ═══ -->
+<div class="view" id="view-salary">
+  <div class="sec-header">
+    <div class="sec-title">💰 الرواتب والخصومات</div>
+    <div style="display:flex;gap:.7rem;flex-wrap:wrap;align-items:center">
+      <select class="filter-select" id="sal-emp" onchange="renderSalary()"><option value="">جميع الموظفين</option></select>
+      <select class="filter-select" id="sal-month" onchange="renderSalary()"><option value="">جميع الأشهر</option></select>
+      <button class="btn btn-success" onclick="exportSalaryCSV()" style="font-size:.82rem;padding:.5rem 1rem">📥 تصدير كشف الرواتب</button>
+    </div>
+  </div>
+
+  <!-- قاعدة الحساب -->
+  <div style="background:var(--card);border-radius:12px;padding:1rem 1.4rem;margin-bottom:1.2rem;box-shadow:0 2px 8px rgba(0,0,0,.06)">
+    <div style="font-weight:800;color:var(--navy);margin-bottom:.7rem;font-size:.9rem">⚙️ آلية الحساب</div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:.9rem;font-size:.83rem">
+      <div style="background:#fee2e2;border-radius:10px;padding:.8rem;border-right:3px solid var(--red)">
+        <div style="font-weight:800;color:var(--red);margin-bottom:.3rem">الغياب فقط يُخصم</div>
+        <div style="color:#7f1d1d">كل يوم غياب = الراتب الإجمالي ÷ 30</div>
+      </div>
+      <div style="background:#f0fdf4;border-radius:10px;padding:.8rem;border-right:3px solid var(--green)">
+        <div style="font-weight:800;color:var(--green);margin-bottom:.3rem">الإجازة السنوية</div>
+        <div style="color:#14532d">مدفوعة بالكامل — لا خصم</div>
+      </div>
+      <div style="background:#eff6ff;border-radius:10px;padding:.8rem;border-right:3px solid var(--accent)">
+        <div style="font-weight:800;color:var(--accent);margin-bottom:.3rem">الرصيد السنوي</div>
+        <div style="color:#1e3a5f">أقل من 5 سنوات = 21 يوم | 5+ = 30 يوم</div>
+      </div>
+    </div>
+    <div style="margin-top:.8rem;background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:.6rem .9rem;font-size:.82rem;color:#92400e">
+      💡 لعرض الخصومات — أدخل الراتب الأساسي والإجمالي لكل موظف من تبويب <strong>⚙️ إدارة الموظفين</strong>
+    </div>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>اسم الموظف</th>
+          <th>القسم</th>
+          <th>سنوات الخدمة</th>
+          <th>الراتب الأساسي</th>
+          <th>الراتب الإجمالي</th>
+          <th>قيمة اليوم</th>
+          <th>أيام الغياب</th>
+          <th>مبلغ الخصم</th>
+          <th>صافي الراتب</th>
+          <th>الحالة</th>
+        </tr>
+      </thead>
+      <tbody id="salary-tbody"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ═══ MANAGE EMPLOYEES ═══ -->
+<div class="view" id="view-manage">
+
+  <!-- Add / Edit Form -->
+  <div style="display:grid;grid-template-columns:380px 1fr;gap:1.5rem;align-items:start">
+    <div class="form-card" style="max-width:100%">
+      <div class="form-header" id="manage-form-header">
+        <h2>➕ إضافة موظف جديد</h2>
+        <p>أدخل بيانات الموظف ثم اضغط حفظ</p>
+      </div>
+      <div class="form-body">
+        <input type="hidden" id="edit-emp-id">
+        <div class="form-group" style="margin-bottom:1rem">
+          <label>رقم الموظف *</label>
+          <input type="text" id="me-id" placeholder="مثال: 131">
+        </div>
+        <div class="form-group" style="margin-bottom:1rem">
+          <label>اسم الموظف *</label>
+          <input type="text" id="me-name" placeholder="الاسم الكامل">
+        </div>
+        <div class="form-group" style="margin-bottom:1rem">
+          <label>القسم *</label>
+          <select id="me-dept">
+            <option value="">-- اختر القسم --</option>
+            <option>الاستقبال</option><option>المبيعات</option>
+            <option>الموارد البشرية</option><option>المالية</option>
+            <option>التقنية</option><option>العمليات</option>
+            <option>التسويق</option><option>خدمة العملاء</option>
+            <option>المشتريات</option><option>اللوجستيات</option>
+            <option value="__new__">➕ قسم جديد...</option>
+          </select>
+        </div>
+        <div class="form-group" id="new-dept-group" style="display:none;margin-bottom:1rem">
+          <label>اسم القسم الجديد</label>
+          <input type="text" id="me-newdept" placeholder="أدخل اسم القسم">
+        </div>
+        <div class="form-group" style="margin-bottom:1rem">
+          <label>تاريخ التعيين</label>
+          <input type="date" id="me-hiredate" onchange="calcBalanceFromHire()">
+        </div>
+        <div class="form-group" style="margin-bottom:1rem">
+          <label>سنوات الخدمة</label>
+          <input type="text" id="me-years" readonly placeholder="يُحسب تلقائياً" style="background:#f8fafc;color:var(--muted)">
+        </div>
+        <div class="form-group" style="margin-bottom:1rem">
+          <label>الرصيد السنوي — نظام العمل السعودي</label>
+          <input type="number" id="me-balance" value="21" min="1" max="365" style="background:#f0fdf4;font-weight:700;color:var(--green)">
+          <div style="font-size:.75rem;color:var(--muted);margin-top:.2rem">أقل من 5 سنوات = 21 يوم | 5 سنوات فأكثر = 30 يوم</div>
+        </div>
+        <div class="form-group" style="margin-bottom:1rem">
+          <label>الراتب الأساسي (ريال)</label>
+          <input type="number" id="me-basic-salary" placeholder="مثال: 5000" min="0">
+        </div>
+        <div class="form-group" style="margin-bottom:1rem">
+          <label>الراتب الإجمالي (ريال)</label>
+          <input type="number" id="me-total-salary" placeholder="مثال: 7000" min="0">
+        </div>
+        <div class="form-group" style="margin-bottom:1.2rem">
+          <label>ملاحظات</label>
+          <input type="text" id="me-notes" placeholder="اختياري">
+        </div>
+        <div class="form-actions" style="margin-top:0;padding-top:1rem">
+          <button class="btn btn-primary" onclick="saveEmployee()" id="save-emp-btn">💾 حفظ الموظف</button>
+          <button class="btn btn-secondary" onclick="cancelEditEmployee()">إلغاء</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Employees Table -->
+    <div>
+      <div class="sec-header">
+        <div class="sec-title">قائمة الموظفين (إجمالي: <span id="emp-count">0</span>)</div>
+        <div style="display:flex;gap:.5rem">
+          <select class="filter-select" id="manage-filter-dept" onchange="renderManageTable()">
+            <option value="">جميع الأقسام</option>
+          </select>
+          <input class="filter-select" type="text" id="manage-search"
+            placeholder="🔍 بحث..." oninput="renderManageTable()" style="min-width:160px">
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>رقم الموظف</th>
+              <th>اسم الموظف</th>
+              <th>القسم</th>
+              <th>تاريخ التعيين</th>
+              <th>سنوات الخدمة</th>
+              <th>الرصيد</th>
+              <th>الراتب الأساسي</th>
+              <th>الإجمالي</th>
+              <th>تعديل</th>
+              <th>حذف</th>
+            </tr>
+          </thead>
+          <tbody id="manage-tbody"></tbody>
+        </table>
+      </div>
+
+      <!-- Bulk actions -->
+      <div style="margin-top:1rem;display:flex;gap:.7rem;flex-wrap:wrap">
+        <button class="btn btn-success" onclick="exportEmployeesCSV()" style="font-size:.82rem;padding:.5rem 1rem">📥 تصدير قائمة الموظفين</button>
+        <button class="btn btn-danger" onclick="resetEmployeesToDefault()" style="font-size:.82rem;padding:.5rem 1rem">🔄 إعادة تعيين للافتراضي</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ BACKUP & RESTORE ═══ -->
+<div class="view" id="view-backup">
+  <div style="max-width:700px;margin:0 auto;display:flex;flex-direction:column;gap:1.5rem">
+
+    <!-- Header -->
+    <div style="background:linear-gradient(135deg,#78350f,#f59e0b);border-radius:16px;padding:1.8rem 2rem;color:#fff;text-align:center">
+      <div style="font-size:2.5rem;margin-bottom:.5rem">💾</div>
+      <div style="font-size:1.4rem;font-weight:900;margin-bottom:.3rem">النسخ الاحتياطي والاستعادة</div>
+      <div style="font-size:.9rem;opacity:.85">صدّر بياناتك واستوردها على أي جهاز بضغطة زر</div>
+    </div>
+
+    <!-- Stats bar -->
+    <div class="stats-bar" id="backup-stats" style="justify-content:center;gap:2.5rem">
+      <div class="stats-item">
+        <div class="stats-dot" style="background:var(--accent)"></div>
+        <div class="stats-text">سجلات الإجازات: <span class="stats-num" id="bk-records">0</span></div>
+      </div>
+      <div class="stats-item">
+        <div class="stats-dot" style="background:var(--green)"></div>
+        <div class="stats-text">عدد الموظفين: <span class="stats-num" id="bk-emps">0</span></div>
+      </div>
+      <div class="stats-item">
+        <div class="stats-dot" style="background:var(--purple)"></div>
+        <div class="stats-text">آخر تصدير: <span class="stats-num" id="bk-lastexport">—</span></div>
+      </div>
+    </div>
+
+    <!-- EXPORT card -->
+    <div class="form-card" style="max-width:100%">
+      <div class="form-header" style="background:linear-gradient(135deg,#064e3b,#10b981)">
+        <h2>📤 تصدير البيانات</h2>
+        <p>احفظ نسخة كاملة من جميع بياناتك في ملف واحد</p>
+      </div>
+      <div class="form-body">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.2rem">
+          <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:1rem;text-align:center">
+            <div style="font-size:1.8rem;margin-bottom:.3rem">📋</div>
+            <div style="font-weight:800;color:#065f46;font-size:.95rem" id="export-records-count">0 سجل إجازة</div>
+            <div style="font-size:.78rem;color:var(--muted)">سيتم تصديرها</div>
+          </div>
+          <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;padding:1rem;text-align:center">
+            <div style="font-size:1.8rem;margin-bottom:.3rem">👥</div>
+            <div style="font-weight:800;color:#1e40af;font-size:.95rem" id="export-emps-count">0 موظف</div>
+            <div style="font-size:.78rem;color:var(--muted)">سيتم تصديرهم</div>
+          </div>
+        </div>
+        <div style="background:#fffbeb;border:1px solid #fde68a;border-radius:10px;padding:.9rem 1rem;font-size:.85rem;color:#92400e;margin-bottom:1.2rem">
+          💡 الملف المصدَّر يحتوي على <strong>كل البيانات</strong>: الموظفين + سجلات الإجازات + الإعدادات. احفظه في مكان آمن.
+        </div>
+        <div style="display:flex;gap:.8rem">
+          <button class="btn btn-primary" onclick="exportAllData()" style="background:#10b981;flex:1;justify-content:center;font-size:1rem">
+            📥 تحميل ملف النسخة الاحتياطية (.json)
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- IMPORT card -->
+    <div class="form-card" style="max-width:100%">
+      <div class="form-header" style="background:linear-gradient(135deg,#1e3a5f,#2563a8)">
+        <h2>📂 استيراد البيانات</h2>
+        <p>استعد بياناتك من نسخة احتياطية سابقة</p>
+      </div>
+      <div class="form-body">
+        <div style="background:#fef3c7;border:1px solid #fcd34d;border-radius:10px;padding:.9rem 1rem;font-size:.85rem;color:#92400e;margin-bottom:1.2rem">
+          ⚠️ <strong>تنبيه:</strong> الاستيراد سيستبدل البيانات الحالية بالكامل. تأكد من تصدير نسخة احتياطية أولاً إذا كنت تريد الاحتفاظ بالبيانات الحالية.
+        </div>
+
+        <!-- Drop zone -->
+        <div id="drop-zone"
+          ondragover="event.preventDefault();this.style.borderColor='var(--accent)';this.style.background='#eff6ff'"
+          ondragleave="this.style.borderColor='#cbd5e1';this.style.background='#f8fafc'"
+          ondrop="handleDrop(event)"
+          onclick="document.getElementById('import-file').click()"
+          style="border:2.5px dashed #cbd5e1;border-radius:14px;padding:2.5rem;text-align:center;cursor:pointer;background:#f8fafc;transition:all .2s;margin-bottom:1rem">
+          <div style="font-size:2.5rem;margin-bottom:.6rem">📂</div>
+          <div style="font-weight:800;color:var(--navy);font-size:.95rem;margin-bottom:.3rem">اسحب ملف النسخة الاحتياطية هنا</div>
+          <div style="font-size:.82rem;color:var(--muted)">أو اضغط لاختيار الملف (.json)</div>
+        </div>
+        <input type="file" id="import-file" accept=".json" style="display:none" onchange="handleFileImport(event)">
+
+        <!-- Preview -->
+        <div id="import-preview" style="display:none;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:1rem;margin-bottom:1rem">
+          <div style="font-weight:800;color:#065f46;margin-bottom:.6rem">✅ تم قراءة الملف بنجاح:</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:.6rem" id="import-preview-content"></div>
+        </div>
+
+        <div id="import-actions" style="display:none">
+          <button class="btn btn-primary" onclick="confirmImport()" style="width:100%;justify-content:center;font-size:1rem">
+            ✅ تأكيد الاستيراد والاستبدال
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Instructions -->
+    <div class="form-card" style="max-width:100%">
+      <div class="form-header" style="background:linear-gradient(135deg,#3b0764,#7c3aed)">
+        <h2>📖 طريقة النقل بين الأجهزة</h2>
+        <p>خطوات سهلة لمشاركة البيانات</p>
+      </div>
+      <div class="form-body">
+        <div style="display:flex;flex-direction:column;gap:.9rem">
+          <div style="display:flex;gap:.9rem;align-items:flex-start">
+            <div style="background:#ede9fe;color:#7c3aed;font-weight:900;font-size:1rem;width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0">1</div>
+            <div>
+              <div style="font-weight:800;color:var(--navy);font-size:.9rem">على الجهاز الأول</div>
+              <div style="font-size:.83rem;color:var(--muted);margin-top:.2rem">اضغط زر <strong>"تحميل ملف النسخة الاحتياطية"</strong> — سيتم تحميل ملف <code style="background:#f1f5f9;padding:.1rem .4rem;border-radius:4px">backup.json</code></div>
+            </div>
+          </div>
+          <div style="display:flex;gap:.9rem;align-items:flex-start">
+            <div style="background:#ede9fe;color:#7c3aed;font-weight:900;font-size:1rem;width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0">2</div>
+            <div>
+              <div style="font-weight:800;color:var(--navy);font-size:.9rem">انقل الملف للجهاز الثاني</div>
+              <div style="font-size:.83rem;color:var(--muted);margin-top:.2rem">عبر واتساب أو إيميل أو USB أو Google Drive — أي طريقة تناسبك</div>
+            </div>
+          </div>
+          <div style="display:flex;gap:.9rem;align-items:flex-start">
+            <div style="background:#ede9fe;color:#7c3aed;font-weight:900;font-size:1rem;width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0">3</div>
+            <div>
+              <div style="font-weight:800;color:var(--navy);font-size:.9rem">على الجهاز الثاني</div>
+              <div style="font-size:.83rem;color:var(--muted);margin-top:.2rem">افتح نظام الإجازات ← تبويب 💾 نسخ احتياطي ← اسحب ملف الـ JSON أو اختره، ثم اضغط <strong>"تأكيد الاستيراد"</strong></div>
+            </div>
+          </div>
+          <div style="display:flex;gap:.9rem;align-items:flex-start">
+            <div style="background:#d1fae5;color:#059669;font-weight:900;font-size:1rem;width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0">✓</div>
+            <div>
+              <div style="font-weight:800;color:#065f46;font-size:.9rem">جاهز! 🎉</div>
+              <div style="font-size:.83rem;color:var(--muted);margin-top:.2rem">جميع بياناتك متاحة الآن على الجهاز الجديد بالكامل</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══ CLOUD SYNC ═══ -->
+<div class="view" id="view-cloud">
+  <div style="max-width:680px;margin:0 auto;display:flex;flex-direction:column;gap:1.5rem">
+
+    <!-- Header -->
+    <div style="background:linear-gradient(135deg,#3b0764,#7c3aed);border-radius:16px;padding:1.8rem 2rem;color:#fff;text-align:center">
+      <div style="font-size:2.5rem;margin-bottom:.5rem">☁️</div>
+      <div style="font-size:1.4rem;font-weight:900;margin-bottom:.3rem">المزامنة اللايف بين الأجهزة</div>
+      <div style="font-size:.9rem;opacity:.85">أي تغيير على جهاز يظهر فوراً على باقي الأجهزة</div>
+    </div>
+
+    <!-- Status bar -->
+    <div style="background:var(--card);border-radius:12px;padding:1rem 1.5rem;box-shadow:0 2px 8px rgba(0,0,0,.07);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.8rem">
+      <div style="display:flex;align-items:center;gap:.6rem">
+        <div id="sync-status-dot" style="width:12px;height:12px;border-radius:50%;background:#94a3b8;flex-shrink:0"></div>
+        <div style="font-weight:700;font-size:.9rem" id="sync-status-text">غير متصل</div>
+      </div>
+      <div style="font-size:.8rem;color:var(--muted)" id="sync-last-time">آخر مزامنة: —</div>
+      <div style="display:flex;gap:.5rem">
+        <button class="btn" onclick="syncPush()" id="btn-push"
+          style="background:#d1fae5;color:#065f46;padding:.4rem .9rem;font-size:.82rem;opacity:.5;pointer-events:none">
+          ⬆️ رفع
+        </button>
+        <button class="btn" onclick="syncPull()" id="btn-pull"
+          style="background:#dbeafe;color:#1e40af;padding:.4rem .9rem;font-size:.82rem;opacity:.5;pointer-events:none">
+          ⬇️ سحب
+        </button>
+      </div>
+    </div>
+
+    <!-- Setup card -->
+    <div class="form-card" style="max-width:100%">
+      <div class="form-header" style="background:linear-gradient(135deg,#3b0764,#6d28d9)">
+        <h2>⚙️ إعداد الاتصال بـ JSONBin</h2>
+        <p>أدخل مفاتيحك مرة واحدة وتحفظ تلقائياً</p>
+      </div>
+      <div class="form-body">
+
+        <!-- How to get keys -->
+        <div style="background:#f5f3ff;border:1px solid #ddd6fe;border-radius:10px;padding:1rem 1.2rem;margin-bottom:1.3rem">
+          <div style="font-weight:800;color:#5b21b6;margin-bottom:.6rem;font-size:.9rem">📋 كيف تحصل على المفاتيح؟</div>
+          <div style="display:flex;flex-direction:column;gap:.5rem">
+            <div style="font-size:.83rem;color:var(--text);display:flex;gap:.5rem">
+              <span style="color:#7c3aed;font-weight:800">1.</span>
+              <span>روح <a href="https://jsonbin.io" target="_blank" style="color:#7c3aed;font-weight:700">jsonbin.io</a> ← سجّل حساب مجاني</span>
+            </div>
+            <div style="font-size:.83rem;color:var(--text);display:flex;gap:.5rem">
+              <span style="color:#7c3aed;font-weight:800">2.</span>
+              <span>بعد الدخول اضغط <strong>"API Keys"</strong> في القائمة ← انسخ الـ <strong>Master Key</strong></span>
+            </div>
+            <div style="font-size:.83rem;color:var(--text);display:flex;gap:.5rem">
+              <span style="color:#7c3aed;font-weight:800">3.</span>
+              <span>اضغط <strong>"Bins" ← "Create Bin"</strong> ← اكتب <code style="background:#ede9fe;padding:.1rem .3rem;border-radius:4px">{}</code> ← اضغط Create</span>
+            </div>
+            <div style="font-size:.83rem;color:var(--text);display:flex;gap:.5rem">
+              <span style="color:#7c3aed;font-weight:800">4.</span>
+              <span>انسخ الـ <strong>BIN ID</strong> من الرابط (الأرقام والحروف بعد <code style="background:#ede9fe;padding:.1rem .3rem;border-radius:4px">/b/</code>)</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-grid">
+          <div class="form-group full">
+            <label>🔑 Master Key</label>
+            <input type="password" id="cfg-apikey" placeholder="$2a$10$xxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+              oninput="checkCloudConfig()" autocomplete="off">
+          </div>
+          <div class="form-group full">
+            <label>🗂️ BIN ID</label>
+            <input type="text" id="cfg-binid" placeholder="xxxxxxxxxxxxxxxxxxxxxxxx"
+              oninput="checkCloudConfig()" autocomplete="off">
+          </div>
+        </div>
+
+        <!-- Auto sync toggle -->
+        <div style="margin-top:1rem;padding:1rem;background:#f5f3ff;border-radius:10px;border:1px solid #ddd6fe;display:flex;align-items:center;justify-content:space-between">
+          <div>
+            <div style="font-weight:700;font-size:.88rem;color:var(--navy)">🔄 مزامنة تلقائية عند كل تغيير</div>
+            <div style="font-size:.78rem;color:var(--muted);margin-top:.15rem">ترفع البيانات تلقائياً بعد كل إضافة أو تعديل</div>
+          </div>
+          <label style="position:relative;display:inline-block;width:46px;height:24px;cursor:pointer">
+            <input type="checkbox" id="cfg-autosync" style="opacity:0;width:0;height:0" onchange="saveCloudConfig()">
+            <span id="toggle-track" style="position:absolute;inset:0;background:#cbd5e1;border-radius:999px;transition:.3s"></span>
+            <span id="toggle-thumb" style="position:absolute;top:3px;right:3px;width:18px;height:18px;background:#fff;border-radius:50%;transition:.3s;box-shadow:0 1px 4px rgba(0,0,0,.2)"></span>
+          </label>
+        </div>
+
+        <div class="form-actions" style="margin-top:1.2rem;padding-top:1rem">
+          <button class="btn btn-primary" onclick="saveCloudConfig()" style="background:#7c3aed;flex:1;justify-content:center">
+            💾 حفظ الإعدادات
+          </button>
+          <button class="btn" onclick="testConnection()" id="btn-test"
+            style="background:#ede9fe;color:#7c3aed;min-width:120px;justify-content:center">
+            🔌 اختبار الاتصال
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Actions card -->
+    <div class="form-card" style="max-width:100%" id="cloud-actions-card">
+      <div class="form-header" style="background:linear-gradient(135deg,#064e3b,#059669)">
+        <h2>🔄 المزامنة اليدوية</h2>
+        <p>تحكم كامل برفع وسحب البيانات</p>
+      </div>
+      <div class="form-body">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+          <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;padding:1.2rem;text-align:center">
+            <div style="font-size:2rem;margin-bottom:.5rem">⬆️</div>
+            <div style="font-weight:800;color:#065f46;margin-bottom:.3rem">رفع البيانات</div>
+            <div style="font-size:.8rem;color:var(--muted);margin-bottom:.9rem">ارفع بياناتك الحالية على السحابة</div>
+            <button class="btn" onclick="syncPush()" id="btn-push2"
+              style="background:#10b981;color:#fff;width:100%;justify-content:center">
+              ⬆️ رفع الآن
+            </button>
+          </div>
+          <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:12px;padding:1.2rem;text-align:center">
+            <div style="font-size:2rem;margin-bottom:.5rem">⬇️</div>
+            <div style="font-weight:800;color:#1e40af;margin-bottom:.3rem">سحب البيانات</div>
+            <div style="font-size:.8rem;color:var(--muted);margin-bottom:.9rem">اسحب أحدث نسخة من السحابة</div>
+            <button class="btn" onclick="syncPull()" id="btn-pull2"
+              style="background:#3b82f6;color:#fff;width:100%;justify-content:center">
+              ⬇️ سحب الآن
+            </button>
+          </div>
+        </div>
+        <div style="margin-top:1rem;background:#fffbeb;border:1px solid #fde68a;border-radius:10px;padding:.8rem 1rem;font-size:.82rem;color:#92400e">
+          💡 <strong>نصيحة:</strong> اضغط <strong>"سحب"</strong> أول ما تفتح النظام عشان تجيب أحدث بيانات من الجهاز الثاني.
+        </div>
+        <div id="sync-log" style="margin-top:.8rem;font-size:.78rem;color:var(--muted);min-height:20px;text-align:center"></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══ CONFIRM DELETE MODAL ═══ -->
+<div class="modal-overlay" id="del-modal" onclick="if(event.target.id==='del-modal')this.classList.remove('open')">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-header" style="background:linear-gradient(135deg,#7f1d1d,#dc2626)">
+      <div style="font-size:1.1rem;font-weight:800">⚠️ تأكيد الحذف</div>
+      <button class="modal-close" onclick="document.getElementById('del-modal').classList.remove('open')">✕</button>
+    </div>
+    <div class="modal-body" style="text-align:center;padding:2rem">
+      <div style="font-size:2.5rem;margin-bottom:.8rem">🗑️</div>
+      <div style="font-size:1rem;font-weight:700;color:var(--navy);margin-bottom:.4rem" id="del-emp-name">—</div>
+      <div style="font-size:.88rem;color:var(--muted);margin-bottom:1.5rem">
+        سيتم حذف الموظف وجميع سجلات إجازاته (<span id="del-emp-records" style="font-weight:700;color:var(--red)">0</span> سجل).<br>لا يمكن التراجع عن هذا الإجراء.
+      </div>
+      <div style="display:flex;gap:.8rem;justify-content:center">
+        <button class="btn btn-danger" id="del-confirm-btn" onclick="confirmDeleteEmployee()">نعم، احذف</button>
+        <button class="btn btn-secondary" onclick="document.getElementById('del-modal').classList.remove('open')">إلغاء</button>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="modal-overlay" id="emp-modal" onclick="closeModal(event)">
+  <div class="modal">
+    <div class="modal-header">
+      <div>
+        <div style="font-size:1.2rem;font-weight:800" id="modal-name">—</div>
+        <div style="font-size:.85rem;color:#94a3b8" id="modal-dept">—</div>
+      </div>
+      <button class="modal-close" onclick="document.getElementById('emp-modal').classList.remove('open')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-kpi-row" id="modal-kpis"></div>
+      <div style="font-weight:800;color:var(--navy);margin-bottom:.8rem;font-size:.9rem">📋 سجل الإجازات</div>
+      <table style="width:100%;border-collapse:collapse;font-size:.83rem">
+        <thead>
+          <tr style="background:#f1f5f9">
+            <th style="padding:.5rem .7rem;text-align:right">الشهر</th>
+            <th style="padding:.5rem .7rem;text-align:right">التاريخ</th>
+            <th style="padding:.5rem .7rem;text-align:right">النوع</th>
+            <th style="padding:.5rem .7rem;text-align:right">ملاحظات</th>
+          </tr>
+        </thead>
+        <tbody id="modal-records"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ TOAST ═══ -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ── DATA ─────────────────────────────────────────────
+const EMPLOYEES = [
+  {id:"101",name:"عبدالعزيز الشريف",dept:"الاستقبال"},
+  {id:"102",name:"محمد العمري",dept:"المبيعات"},
+  {id:"103",name:"سارة الحربي",dept:"الموارد البشرية"},
+  {id:"104",name:"خالد المطيري",dept:"المالية"},
+  {id:"105",name:"نورة القحطاني",dept:"التقنية"},
+  {id:"106",name:"فيصل الدوسري",dept:"العمليات"},
+  {id:"107",name:"ريم العتيبي",dept:"التسويق"},
+  {id:"108",name:"عمر السبيعي",dept:"خدمة العملاء"},
+  {id:"109",name:"هند الزهراني",dept:"المشتريات"},
+  {id:"110",name:"سلطان الغامدي",dept:"اللوجستيات"},
+  {id:"111",name:"أميرة الشمري",dept:"المبيعات"},
+  {id:"112",name:"عبدالله الرشيدي",dept:"المالية"},
+  {id:"113",name:"لمياء الأحمدي",dept:"التقنية"},
+  {id:"114",name:"ناصر الحمدان",dept:"الاستقبال"},
+  {id:"115",name:"دانا المالكي",dept:"الموارد البشرية"},
+  {id:"116",name:"طلال البقمي",dept:"العمليات"},
+  {id:"117",name:"مها الجهني",dept:"التسويق"},
+  {id:"118",name:"يوسف العسيري",dept:"خدمة العملاء"},
+  {id:"119",name:"غادة الخالدي",dept:"المشتريات"},
+  {id:"120",name:"راشد المنصور",dept:"اللوجستيات"},
+  {id:"121",name:"تهاني السلمي",dept:"المبيعات"},
+  {id:"122",name:"وليد الحميدان",dept:"المالية"},
+  {id:"123",name:"منى القرني",dept:"التقنية"},
+  {id:"124",name:"إبراهيم الصقر",dept:"الاستقبال"},
+  {id:"125",name:"بسمة الثبيتي",dept:"الموارد البشرية"},
+  {id:"126",name:"حمد الصالح",dept:"العمليات"},
+  {id:"127",name:"ولاء الشهراني",dept:"التسويق"},
+  {id:"128",name:"بندر الوادعي",dept:"خدمة العملاء"},
+  {id:"129",name:"شهد النجار",dept:"المشتريات"},
+  {id:"130",name:"عثمان الجبيل",dept:"اللوجستيات"},
+];
+
+const LEAVE_TYPES = ["غياب","إجازة مرضية","إجازة سنوية","استئذان","إجازة طارئة","إجازة رسمية"];
+const LEAVE_COLORS = {
+  "غياب":"red","إجازة مرضية":"orange","إجازة سنوية":"green",
+  "استئذان":"purple","إجازة طارئة":"teal","إجازة رسمية":"blue"
+};
+const DEPT_COLORS = ["#3b82f6","#8b5cf6","#ec4899","#f59e0b","#10b981","#ef4444","#0ea5e9","#14b8a6","#6366f1","#f97316"];
+
+// ── STORAGE ──────────────────────────────────────────
+function getRecords(){ try{ return JSON.parse(localStorage.getItem('leaveRecords')||'[]'); }catch(e){ return []; } }
+function saveRecords(r){ localStorage.setItem('leaveRecords',JSON.stringify(r)); }
+
+// Pre-load sample data if empty
+if(!localStorage.getItem('leaveRecords')){
+  const sample = [
+    {id:Date.now()+1,emp:"عبدالعزيز الشريف",dept:"الاستقبال",month:"ديسمبر 2025",date:"2025-12-01",daytype:"غياب",leavetype:"غياب",notes:""},
+    {id:Date.now()+2,emp:"عبدالعزيز الشريف",dept:"الاستقبال",month:"ديسمبر 2025",date:"2025-12-06",daytype:"غياب",leavetype:"غياب",notes:""},
+    {id:Date.now()+3,emp:"عبدالعزيز الشريف",dept:"الاستقبال",month:"ديسمبر 2025",date:"2025-12-14",daytype:"إجازة",leavetype:"إجازة مرضية",notes:"سكليف"},
+    {id:Date.now()+4,emp:"عبدالعزيز الشريف",dept:"الاستقبال",month:"يناير 2026",date:"2026-01-10",daytype:"إجازة",leavetype:"إجازة سنوية",notes:""},
+    {id:Date.now()+5,emp:"عبدالعزيز الشريف",dept:"الاستقبال",month:"يناير 2026",date:"2026-01-12",daytype:"إجازة",leavetype:"إجازة سنوية",notes:""},
+    {id:Date.now()+6,emp:"عبدالعزيز الشريف",dept:"الاستقبال",month:"فبراير 2026",date:"2026-02-22",daytype:"استئذان",leavetype:"استئذان",notes:"موعد طبي"},
+    {id:Date.now()+7,emp:"محمد العمري",dept:"المبيعات",month:"يناير 2026",date:"2026-01-15",daytype:"غياب",leavetype:"غياب",notes:""},
+    {id:Date.now()+8,emp:"محمد العمري",dept:"المبيعات",month:"فبراير 2026",date:"2026-02-05",daytype:"إجازة",leavetype:"إجازة مرضية",notes:""},
+    {id:Date.now()+9,emp:"سارة الحربي",dept:"الموارد البشرية",month:"يناير 2026",date:"2026-01-20",daytype:"إجازة",leavetype:"إجازة سنوية",notes:"إجازة عائلية"},
+    {id:Date.now()+10,emp:"خالد المطيري",dept:"المالية",month:"ديسمبر 2025",date:"2025-12-20",daytype:"غياب",leavetype:"غياب",notes:""},
+  ];
+  saveRecords(sample);
+}
+
+// ── VIEW NAVIGATION ───────────────────────────────────
+function showView(v){
+  document.querySelectorAll('.view').forEach(e=>e.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(e=>e.classList.remove('active'));
+  document.getElementById('view-'+v).classList.add('active');
+  const tabs = ['dashboard','entry','log','employees','reports','manage','backup','cloud'];
+  document.querySelectorAll('.nav-tab')[tabs.indexOf(v)]?.classList.add('active');
+  if(v==='dashboard') renderDashboard();
+  if(v==='log') renderLog();
+  if(v==='employees') renderEmployees();
+  if(v==='reports') renderReports();
+  if(v==='manage') renderManageTable();
+  if(v==='backup') renderBackupStats();
+  if(v==='cloud') initCloudView();
+}
+
+// ── HELPERS ───────────────────────────────────────────
+function getEmpStats(empName, records, filterMonth=''){
+  const rows = records.filter(r=>r.emp===empName && (!filterMonth || r.month===filterMonth));
+  const stats = {};
+  LEAVE_TYPES.forEach(t=>stats[t]=0);
+  rows.forEach(r=>{ if(stats[r.leavetype]!==undefined) stats[r.leavetype]++; });
+  return stats;
+}
+function getTotal(stats){ return Object.values(stats).reduce((a,b)=>a+b,0); }
+function getBadge(type){ return `<span class="badge badge-${LEAVE_COLORS[type]||'gray'}">${type}</span>`; }
+function getRating(absent){
+  if(absent>=5) return '<span class="badge badge-red">🔴 تحذير</span>';
+  if(absent>=3) return '<span class="badge badge-orange">🟠 يُراقب</span>';
+  return '<span class="badge badge-green">✅ طبيعي</span>';
+}
+function fmtDate(d){ if(!d)return'—'; try{ return new Date(d).toLocaleDateString('ar-SA'); }catch(e){return d;} }
+function getMonths(records){ return [...new Set(records.map(r=>r.month))].filter(Boolean).sort(); }
+function getDepts(){ return [...new Set(EMPLOYEES.map(e=>e.dept))]; }
+function getEmpById(name){ return EMPLOYEES.find(e=>e.name===name)||null; }
+
+// ── INIT DROPDOWNS ─────────────────────────────────────
+function initDropdowns(){
+  // Load saved employees first
+  const savedList = getEmployeeList();
+  syncEmployeesToGlobal(savedList);
+
+  // Employee select (already populated by syncEmployeesToGlobal)
+  document.getElementById('f-employee').addEventListener('change',function(){
+    const emp=EMPLOYEES.find(e=>e.name===this.value);
+    document.getElementById('f-dept').value = emp?emp.dept:'';
+  });
+
+  refreshMonthFilters();
+}
+
+function refreshMonthFilters(){
+  const records=getRecords();
+  const months=getMonths(records);
+  ['dash-filter-month','log-filter-month'].forEach(id=>{
+    const sel=document.getElementById(id);
+    const cur=sel.value;
+    while(sel.options.length>1) sel.remove(1);
+    months.forEach(m=>{ const o=document.createElement('option');o.value=m;o.textContent=m;sel.appendChild(o); });
+    sel.value=cur;
+  });
+}
+
+// ── DASHBOARD ──────────────────────────────────────────
+function renderDashboard(){
+  const records=getRecords();
+  const filterDept=document.getElementById('dash-filter-dept')?.value||'';
+  const filterMonth=document.getElementById('dash-filter-month')?.value||'';
+
+  const fRecords = records.filter(r=>
+    (!filterDept || r.dept===filterDept) &&
+    (!filterMonth || r.month===filterMonth)
+  );
+
+  // KPIs
+  const kpiMap={'غياب':'kpi-absent','إجازة مرضية':'kpi-sick','إجازة سنوية':'kpi-annual','استئذان':'kpi-permission','إجازة طارئة':'kpi-emergency'};
+  LEAVE_TYPES.forEach(t=>{
+    const total=fRecords.filter(r=>r.leavetype===t).length;
+    if(kpiMap[t]) document.getElementById(kpiMap[t]).textContent=total;
+  });
+
+  // Table
+  const tbody=document.getElementById('dash-tbody');
+  let emps = EMPLOYEES.filter(e=>!filterDept||e.dept===filterDept);
+  let html='';
+  emps.forEach((e,i)=>{
+    const stats=getEmpStats(e.name,fRecords);
+    const tot=getTotal(stats);
+    const remaining=30-stats['إجازة سنوية'];
+    html+=`<tr onclick="openEmpModal('${e.name}')" style="cursor:pointer">
+      <td>${i+1}</td>
+      <td style="font-weight:700">${e.name}</td>
+      <td>${e.dept}</td>
+      <td style="color:var(--red);font-weight:700">${stats['غياب']||0}</td>
+      <td style="color:var(--orange)">${stats['إجازة مرضية']||0}</td>
+      <td style="color:var(--green)">${stats['إجازة سنوية']||0}</td>
+      <td style="color:var(--purple)">${stats['استئذان']||0}</td>
+      <td style="color:var(--teal)">${stats['إجازة طارئة']||0}</td>
+      <td style="color:var(--sky)">${stats['إجازة رسمية']||0}</td>
+      <td style="font-weight:900;color:var(--navy)">${tot}</td>
+      <td style="font-weight:700;color:${remaining<10?'var(--red)':remaining<20?'var(--orange)':'var(--green)'}">${remaining}</td>
+      <td>${getRating(stats['غياب']||0)}</td>
+    </tr>`;
+  });
+  tbody.innerHTML=html||'<tr><td colspan="12" class="empty"><div class="empty-icon">📭</div><div class="empty-text">لا توجد بيانات</div></td></tr>';
+}
+
+// ── LOG ────────────────────────────────────────────────
+let logPage=1; const logPerPage=20;
+function renderLog(){
+  logPage=1; buildLogTable();
+}
+function buildLogTable(){
+  let records=getRecords();
+  const fEmp=document.getElementById('log-filter-emp')?.value||'';
+  const fType=document.getElementById('log-filter-type')?.value||'';
+  const fMonth=document.getElementById('log-filter-month')?.value||'';
+  records=records.filter(r=>
+    (!fEmp||r.emp===fEmp)&&(!fType||r.leavetype===fType)&&(!fMonth||r.month===fMonth)
+  ).reverse();
+
+  const total=records.length;
+  const pages=Math.ceil(total/logPerPage);
+  const slice=records.slice((logPage-1)*logPerPage, logPage*logPerPage);
+
+  const tbody=document.getElementById('log-tbody');
+  if(!slice.length){
+    tbody.innerHTML='<tr><td colspan="9"><div class="empty"><div class="empty-icon">📭</div><div class="empty-text">لا توجد سجلات مطابقة</div></div></td></tr>';
+  } else {
+    tbody.innerHTML=slice.map((r,i)=>`
+      <tr>
+        <td>${(logPage-1)*logPerPage+i+1}</td>
+        <td style="font-weight:700">${r.emp}</td>
+        <td>${r.dept||'—'}</td>
+        <td>${r.month||'—'}</td>
+        <td>${fmtDate(r.date)}</td>
+        <td>${r.daytype||'—'}</td>
+        <td>${getBadge(r.leavetype)}</td>
+        <td style="color:var(--muted);font-size:.8rem">${r.notes||'—'}</td>
+        <td><button onclick="deleteRecord(${r.id})" style="background:none;border:none;cursor:pointer;font-size:1rem;color:var(--red)" title="حذف">🗑️</button></td>
+      </tr>`).join('');
+  }
+
+  // Pagination
+  const pg=document.getElementById('log-pagination');
+  if(pages<=1){ pg.innerHTML=''; return; }
+  let phtml=`<span style="font-size:.82rem;color:var(--muted)">إجمالي ${total} سجل</span>`;
+  for(let p=1;p<=pages;p++){
+    phtml+=`<button class="page-btn${p===logPage?' active':''}" onclick="logPage=${p};buildLogTable()">${p}</button>`;
+  }
+  pg.innerHTML=phtml;
+}
+
+// ── EMPLOYEES VIEW ─────────────────────────────────────
+function renderEmployees(){
+  const records=getRecords();
+  const fDept=document.getElementById('emp-filter-dept')?.value||'';
+  const search=(document.getElementById('emp-search')?.value||'').trim();
+  const grid=document.getElementById('emp-grid');
+  let emps=EMPLOYEES.filter(e=>
+    (!fDept||e.dept===fDept)&&
+    (!search||e.name.includes(search))
+  );
+  grid.innerHTML=emps.map((e,i)=>{
+    const stats=getEmpStats(e.name,records);
+    const tot=getTotal(stats);
+    const colorIdx=getDepts().indexOf(e.dept)%DEPT_COLORS.length;
+    return `<div class="emp-card" onclick="openEmpModal('${e.name}')">
+      <div class="emp-card-header">
+        <div class="emp-avatar" style="background:${DEPT_COLORS[colorIdx]}">${e.name.charAt(0)}</div>
+        <div>
+          <div class="emp-name">${e.name}</div>
+          <div class="emp-dept">${e.id} · ${e.dept}</div>
+        </div>
+      </div>
+      <div class="emp-stats">
+        <div class="emp-stat" style="background:#fee2e2">
+          <div class="emp-stat-num" style="color:var(--red)">${stats['غياب']||0}</div>
+          <div class="emp-stat-label">غياب</div>
+        </div>
+        <div class="emp-stat" style="background:#ffedd5">
+          <div class="emp-stat-num" style="color:var(--orange)">${stats['إجازة مرضية']||0}</div>
+          <div class="emp-stat-label">مرضية</div>
+        </div>
+        <div class="emp-stat" style="background:#d1fae5">
+          <div class="emp-stat-num" style="color:var(--green)">${stats['إجازة سنوية']||0}</div>
+          <div class="emp-stat-label">سنوية</div>
+        </div>
+      </div>
+      <div style="margin-top:.8rem;display:flex;align-items:center;justify-content:space-between">
+        <div style="font-size:.78rem;color:var(--muted)">المجموع: <strong>${tot}</strong></div>
+        ${getRating(stats['غياب']||0)}
+      </div>
+    </div>`;
+  }).join('')||'<div class="empty"><div class="empty-icon">🔍</div><div class="empty-text">لا توجد نتائج</div></div>';
+}
+
+// ── EMPLOYEE MODAL ─────────────────────────────────────
+function openEmpModal(name){
+  const records=getRecords().filter(r=>r.emp===name);
+  const stats=getEmpStats(name,records);
+  const emp=getEmpById(name);
+  document.getElementById('modal-name').textContent=name;
+  document.getElementById('modal-dept').textContent=emp?`${emp.id} · ${emp.dept}`:'';
+
+  const kpiData=[
+    {label:'غياب',num:stats['غياب']||0,clr:'var(--red)',bg:'#fee2e2'},
+    {label:'مرضية',num:stats['إجازة مرضية']||0,clr:'var(--orange)',bg:'#ffedd5'},
+    {label:'سنوية',num:stats['إجازة سنوية']||0,clr:'var(--green)',bg:'#d1fae5'},
+    {label:'استئذان',num:stats['استئذان']||0,clr:'var(--purple)',bg:'#ede9fe'},
+    {label:'طارئة',num:stats['إجازة طارئة']||0,clr:'var(--teal)',bg:'#ccfbf1'},
+    {label:'رسمية',num:stats['إجازة رسمية']||0,clr:'var(--sky)',bg:'#e0f2fe'},
+  ];
+  document.getElementById('modal-kpis').innerHTML=kpiData.map(k=>`
+    <div class="modal-kpi" style="background:${k.bg}">
+      <div class="num" style="color:${k.clr}">${k.num}</div>
+      <div class="lbl">${k.label}</div>
+    </div>`).join('');
+
+  const sorted=records.slice().reverse();
+  document.getElementById('modal-records').innerHTML=sorted.length?sorted.map(r=>`
+    <tr style="border-bottom:1px solid #f1f5f9">
+      <td style="padding:.45rem .7rem;font-size:.82rem">${r.month||'—'}</td>
+      <td style="padding:.45rem .7rem;font-size:.82rem">${fmtDate(r.date)}</td>
+      <td style="padding:.45rem .7rem">${getBadge(r.leavetype)}</td>
+      <td style="padding:.45rem .7rem;font-size:.78rem;color:var(--muted)">${r.notes||'—'}</td>
+    </tr>`).join(''):'<tr><td colspan="4" style="text-align:center;padding:1.5rem;color:var(--muted)">لا توجد سجلات</td></tr>';
+
+  document.getElementById('emp-modal').classList.add('open');
+}
+function closeModal(e){ if(e.target.id==='emp-modal') document.getElementById('emp-modal').classList.remove('open'); }
+
+// ── REPORTS ───────────────────────────────────────────
+function renderReports(){
+  const records=getRecords();
+  const empStats=EMPLOYEES.map(e=>({...e,stats:getEmpStats(e.name,records)}));
+
+  // Top absent
+  const byAbsent=[...empStats].sort((a,b)=>(b.stats['غياب']||0)-(a.stats['غياب']||0)).slice(0,10);
+  document.getElementById('report-absent').innerHTML=byAbsent.map((e,i)=>`
+    <tr><td>${i+1}</td><td style="font-weight:700">${e.name}</td>
+    <td style="color:var(--red);font-weight:900">${e.stats['غياب']||0}</td>
+    <td>${getRating(e.stats['غياب']||0)}</td></tr>`).join('');
+
+  // Top sick
+  const bySick=[...empStats].sort((a,b)=>(b.stats['إجازة مرضية']||0)-(a.stats['إجازة مرضية']||0)).slice(0,10);
+  document.getElementById('report-sick').innerHTML=bySick.map((e,i)=>`
+    <tr><td>${i+1}</td><td style="font-weight:700">${e.name}</td>
+    <td style="color:var(--orange);font-weight:900">${e.stats['إجازة مرضية']||0}</td>
+    <td>${(e.stats['إجازة مرضية']||0)>=10?'<span class="badge badge-red">مرتفع</span>':'<span class="badge badge-green">طبيعي</span>'}</td></tr>`).join('');
+
+  // Annual balance
+  const byAnnual=[...empStats].sort((a,b)=>(b.stats['إجازة سنوية']||0)-(a.stats['إجازة سنوية']||0)).slice(0,10);
+  document.getElementById('report-annual').innerHTML=byAnnual.map((e,i)=>{
+    const used=e.stats['إجازة سنوية']||0; const rem=30-used; const pct=Math.round(used/30*100);
+    return `<tr><td>${i+1}</td><td style="font-weight:700">${e.name}</td>
+    <td style="color:var(--orange);font-weight:700">${used}</td>
+    <td style="color:${rem<10?'var(--red)':'var(--green)'};font-weight:700">${rem}</td>
+    <td style="min-width:80px"><div class="progress-wrap"><div class="progress-bar" style="width:${pct}%;background:${rem<10?'var(--red)':'var(--accent)'}"></div></div><div style="font-size:.7rem;color:var(--muted);text-align:center">${pct}%</div></td></tr>`;
+  }).join('');
+
+  // By dept
+  const depts=getDepts();
+  document.getElementById('report-dept').innerHTML=depts.map(d=>{
+    const dr=records.filter(r=>r.dept===d);
+    return `<tr><td style="font-weight:700">${d}</td>
+    <td style="font-weight:900;color:var(--navy)">${dr.length}</td>
+    <td style="color:var(--red)">${dr.filter(r=>r.leavetype==='غياب').length}</td>
+    <td style="color:var(--orange)">${dr.filter(r=>r.leavetype==='إجازة مرضية').length}</td>
+    <td style="color:var(--green)">${dr.filter(r=>r.leavetype==='إجازة سنوية').length}</td></tr>`;
+  }).join('');
+}
+
+// ── FORM ──────────────────────────────────────────────
+function toggleMultiday(){
+  const checked=document.getElementById('f-multiday').checked;
+  document.getElementById('multiday-fields').style.display=checked?'block':'none';
+}
+
+function clearForm(){
+  ['f-employee','f-month','f-daytype','f-leavetype'].forEach(id=>document.getElementById(id).value='');
+  ['f-dept','f-notes'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('f-date').value='';
+  document.getElementById('f-startdate').value='';
+  document.getElementById('f-enddate').value='';
+  document.getElementById('f-multiday').checked=false;
+  document.getElementById('multiday-fields').style.display='none';
+}
+
+function saveEntry(){
+  const emp=document.getElementById('f-employee').value;
+  const month=document.getElementById('f-month').value;
+  const daytype=document.getElementById('f-daytype').value;
+  const leavetype=document.getElementById('f-leavetype').value;
+  const dept=document.getElementById('f-dept').value;
+  const notes=document.getElementById('f-notes').value;
+  const multiday=document.getElementById('f-multiday').checked;
+
+  if(!emp||!month||!daytype||!leavetype){ showToast('⚠️ يرجى تعبئة جميع الحقول المطلوبة','error'); return; }
+
+  const records=getRecords();
+  let added=0;
+
+  if(multiday){
+    const s=document.getElementById('f-startdate').value;
+    const en=document.getElementById('f-enddate').value;
+    if(!s||!en){ showToast('⚠️ أدخل تاريخ البداية والنهاية','error'); return; }
+    let cur=new Date(s); const end=new Date(en);
+    if(cur>end){ showToast('⚠️ تاريخ البداية بعد النهاية','error'); return; }
+    while(cur<=end){
+      records.push({id:Date.now()+added,emp,dept,month,date:cur.toISOString().slice(0,10),daytype,leavetype,notes});
+      added++; cur.setDate(cur.getDate()+1);
+    }
+  } else {
+    const date=document.getElementById('f-date').value;
+    if(!date){ showToast('⚠️ أدخل التاريخ','error'); return; }
+    records.push({id:Date.now(),emp,dept,month,date,daytype,leavetype,notes});
+    added=1;
+  }
+
+  saveRecords(records);
+  refreshMonthFilters();
+  clearForm();
+  showToast(`✅ تم تسجيل ${added} يوم بنجاح!`,'success');
+  autoSync();
+}
+
+// ── DELETE ─────────────────────────────────────────────
+function deleteRecord(id){
+  if(!confirm('هل تريد حذف هذا السجل؟')) return;
+  saveRecords(getRecords().filter(r=>r.id!==id));
+  renderLog(); showToast('🗑️ تم الحذف','success'); autoSync();
+}
+function clearAllConfirm(){
+  if(!confirm('⚠️ هل أنت متأكد من حذف جميع السجلات؟\nلا يمكن التراجع عن هذا الإجراء!')) return;
+  saveRecords([]); renderLog(); showToast('🗑️ تم حذف جميع السجلات','success');
+}
+
+// ── EXPORT ─────────────────────────────────────────────
+function exportCSV(){
+  const records=getRecords();
+  if(!records.length){ showToast('لا توجد بيانات للتصدير','error'); return; }
+  const headers=['الموظف','القسم','الشهر','التاريخ','نوع اليوم','نوع الإجازة','ملاحظات'];
+  const rows=records.map(r=>[r.emp,r.dept||'',r.month||'',r.date||'',r.daytype||'',r.leavetype||'',r.notes||'']);
+  const csv='\uFEFF'+[headers,...rows].map(r=>r.map(c=>`"${c}"`).join(',')).join('\n');
+  const a=document.createElement('a');
+  a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);
+  a.download='سجل_الإجازات.csv'; a.click();
+  showToast('📥 تم تصدير الملف','success');
+}
+
+// ── TOAST ──────────────────────────────────────────────
+function showToast(msg,type='success'){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.className='toast '+type;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),3000);
+}
+
+// ── MANAGE EMPLOYEES ──────────────────────────────────
+const DEFAULT_EMPLOYEES = [
+  {id:"101",name:"عبدالعزيز الشريف",dept:"الاستقبال",balance:30,notes:""},
+  {id:"102",name:"محمد العمري",dept:"المبيعات",balance:30,notes:""},
+  {id:"103",name:"سارة الحربي",dept:"الموارد البشرية",balance:30,notes:""},
+  {id:"104",name:"خالد المطيري",dept:"المالية",balance:30,notes:""},
+  {id:"105",name:"نورة القحطاني",dept:"التقنية",balance:30,notes:""},
+  {id:"106",name:"فيصل الدوسري",dept:"العمليات",balance:30,notes:""},
+  {id:"107",name:"ريم العتيبي",dept:"التسويق",balance:30,notes:""},
+  {id:"108",name:"عمر السبيعي",dept:"خدمة العملاء",balance:30,notes:""},
+  {id:"109",name:"هند الزهراني",dept:"المشتريات",balance:30,notes:""},
+  {id:"110",name:"سلطان الغامدي",dept:"اللوجستيات",balance:30,notes:""},
+  {id:"111",name:"أميرة الشمري",dept:"المبيعات",balance:30,notes:""},
+  {id:"112",name:"عبدالله الرشيدي",dept:"المالية",balance:30,notes:""},
+  {id:"113",name:"لمياء الأحمدي",dept:"التقنية",balance:30,notes:""},
+  {id:"114",name:"ناصر الحمدان",dept:"الاستقبال",balance:30,notes:""},
+  {id:"115",name:"دانا المالكي",dept:"الموارد البشرية",balance:30,notes:""},
+  {id:"116",name:"طلال البقمي",dept:"العمليات",balance:30,notes:""},
+  {id:"117",name:"مها الجهني",dept:"التسويق",balance:30,notes:""},
+  {id:"118",name:"يوسف العسيري",dept:"خدمة العملاء",balance:30,notes:""},
+  {id:"119",name:"غادة الخالدي",dept:"المشتريات",balance:30,notes:""},
+  {id:"120",name:"راشد المنصور",dept:"اللوجستيات",balance:30,notes:""},
+  {id:"121",name:"تهاني السلمي",dept:"المبيعات",balance:30,notes:""},
+  {id:"122",name:"وليد الحميدان",dept:"المالية",balance:30,notes:""},
+  {id:"123",name:"منى القرني",dept:"التقنية",balance:30,notes:""},
+  {id:"124",name:"إبراهيم الصقر",dept:"الاستقبال",balance:30,notes:""},
+  {id:"125",name:"بسمة الثبيتي",dept:"الموارد البشرية",balance:30,notes:""},
+  {id:"126",name:"حمد الصالح",dept:"العمليات",balance:30,notes:""},
+  {id:"127",name:"ولاء الشهراني",dept:"التسويق",balance:30,notes:""},
+  {id:"128",name:"بندر الوادعي",dept:"خدمة العملاء",balance:30,notes:""},
+  {id:"129",name:"شهد النجار",dept:"المشتريات",balance:30,notes:""},
+  {id:"130",name:"عثمان الجبيل",dept:"اللوجستيات",balance:30,notes:""},
+];
+
+function getEmployeeList(){ try{ return JSON.parse(localStorage.getItem('employeeList')||'null') || DEFAULT_EMPLOYEES.map(e=>({...e})); }catch(e){ return DEFAULT_EMPLOYEES.map(e=>({...e})); } }
+function saveEmployeeList(list){ localStorage.setItem('employeeList',JSON.stringify(list)); syncEmployeesToGlobal(list); }
+
+function syncEmployeesToGlobal(list){
+  EMPLOYEES.length=0;
+  list.forEach(e=>EMPLOYEES.push({id:e.id,name:e.name,dept:e.dept}));
+  // Refresh dropdowns
+  const fEmp=document.getElementById('f-employee');
+  if(fEmp){ fEmp.innerHTML='<option value="">-- اختر الموظف --</option>'; EMPLOYEES.forEach(e=>{ const o=document.createElement('option');o.value=e.name;o.textContent=`${e.id} - ${e.name}`;fEmp.appendChild(o); }); }
+  const logEmp=document.getElementById('log-filter-emp');
+  if(logEmp){ while(logEmp.options.length>1) logEmp.remove(1); EMPLOYEES.forEach(e=>{ const o=document.createElement('option');o.value=e.name;o.textContent=e.name;logEmp.appendChild(o); }); }
+  // Refresh dept filters
+  const allDepts=[...new Set(list.map(e=>e.dept))];
+  ['dash-filter-dept','emp-filter-dept','manage-filter-dept'].forEach(id=>{
+    const sel=document.getElementById(id); if(!sel)return;
+    const cur=sel.value; while(sel.options.length>1) sel.remove(1);
+    allDepts.forEach(d=>{ const o=document.createElement('option');o.value=d;o.textContent=d;sel.appendChild(o); });
+    sel.value=cur;
+  });
+}
+
+// Dept select toggle
+document.getElementById('me-dept')?.addEventListener('change',function(){
+  document.getElementById('new-dept-group').style.display = this.value==='__new__'?'block':'none';
+});
+
+let pendingDeleteName = null;
+
+function renderManageTable(){
+  const list = getEmployeeList();
+  const fDept = document.getElementById('manage-filter-dept')?.value||'';
+  const search = (document.getElementById('manage-search')?.value||'').trim();
+  const filtered = list.filter(e=>
+    (!fDept||e.dept===fDept) && (!search||e.name.includes(search)||e.id.includes(search))
+  );
+  document.getElementById('emp-count').textContent = list.length;
+
+  // Populate dept filter
+  const allDepts=[...new Set(list.map(e=>e.dept))];
+  const mfd=document.getElementById('manage-filter-dept');
+  if(mfd){
+    const cur=mfd.value; while(mfd.options.length>1) mfd.remove(1);
+    allDepts.forEach(d=>{ const o=document.createElement('option');o.value=d;o.textContent=d;mfd.appendChild(o); });
+    mfd.value=cur;
+  }
+
+  const tbody=document.getElementById('manage-tbody');
+  if(!filtered.length){
+    tbody.innerHTML='<tr><td colspan="8"><div class="empty"><div class="empty-icon">🔍</div><div class="empty-text">لا توجد نتائج</div></div></td></tr>';
+    return;
+  }
+  tbody.innerHTML=filtered.map((e,i)=>`
+    <tr id="emp-row-${e.id}">
+      <td style="color:var(--muted);font-size:.82rem">${i+1}</td>
+      <td><span class="badge badge-blue">${e.id}</span></td>
+      <td style="font-weight:700">${e.name}</td>
+      <td>${e.dept}</td>
+      <td style="color:var(--green);font-weight:700">${e.balance||30} يوم</td>
+      <td style="color:var(--muted);font-size:.8rem">${e.notes||'—'}</td>
+      <td>
+        <button onclick="editEmployee('${e.id}')"
+          style="background:#dbeafe;color:#1d4ed8;border:none;border-radius:7px;padding:.3rem .8rem;cursor:pointer;font-family:'Tajawal',sans-serif;font-size:.82rem;font-weight:700">
+          ✏️ تعديل
+        </button>
+      </td>
+      <td>
+        <button onclick="promptDeleteEmployee('${e.id}')"
+          style="background:#fee2e2;color:#dc2626;border:none;border-radius:7px;padding:.3rem .8rem;cursor:pointer;font-family:'Tajawal',sans-serif;font-size:.82rem;font-weight:700">
+          🗑️ حذف
+        </button>
+      </td>
+    </tr>`).join('');
+}
+
+function saveEmployee(){
+  let empId = document.getElementById('me-id').value.trim();
+  const empName = document.getElementById('me-name').value.trim();
+  let dept = document.getElementById('me-dept').value;
+  if(dept==='__new__') dept = document.getElementById('me-newdept').value.trim();
+  const balance = parseInt(document.getElementById('me-balance').value)||30;
+  const notes = document.getElementById('me-notes').value.trim();
+  const editId = document.getElementById('edit-emp-id').value;
+
+  if(!empId||!empName||!dept){ showToast('⚠️ رقم الموظف والاسم والقسم مطلوبة','error'); return; }
+
+  const list = getEmployeeList();
+
+  if(editId){
+    // EDIT mode
+    const idx = list.findIndex(e=>e.id===editId);
+    if(idx===-1){ showToast('❌ الموظف غير موجود','error'); return; }
+    // Update records if name changed
+    const oldName = list[idx].name;
+    if(oldName !== empName){
+      const records = getRecords();
+      records.forEach(r=>{ if(r.emp===oldName){ r.emp=empName; r.dept=dept; } });
+      saveRecords(records);
+    }
+    list[idx] = {id:empId, name:empName, dept, balance, notes};
+    saveEmployeeList(list);
+    showToast(`✅ تم تعديل بيانات ${empName}`,'success');
+    cancelEditEmployee();
+    autoSync();
+  } else {
+    // ADD mode
+    if(list.find(e=>e.id===empId)){ showToast('⚠️ رقم الموظف مستخدم مسبقاً','error'); return; }
+    if(list.find(e=>e.name===empName)){ showToast('⚠️ اسم الموظف مستخدم مسبقاً','error'); return; }
+    list.push({id:empId, name:empName, dept, balance, notes});
+    saveEmployeeList(list);
+    showToast(`✅ تم إضافة ${empName} بنجاح`,'success');
+    cancelEditEmployee();
+  }
+  renderManageTable();
+}
+
+function editEmployee(empId){
+  const list = getEmployeeList();
+  const emp = list.find(e=>e.id===empId);
+  if(!emp) return;
+  document.getElementById('edit-emp-id').value = emp.id;
+  document.getElementById('me-id').value = emp.id;
+  document.getElementById('me-name').value = emp.name;
+  document.getElementById('me-balance').value = emp.balance||30;
+  document.getElementById('me-notes').value = emp.notes||'';
+  // Set dept
+  const deptSel = document.getElementById('me-dept');
+  const exists = [...deptSel.options].find(o=>o.value===emp.dept);
+  if(exists){ deptSel.value=emp.dept; }
+  else { deptSel.value='__new__'; document.getElementById('new-dept-group').style.display='block'; document.getElementById('me-newdept').value=emp.dept; }
+  // Update header
+  document.getElementById('manage-form-header').innerHTML=`<h2>✏️ تعديل بيانات موظف</h2><p>${emp.name}</p>`;
+  document.getElementById('save-emp-btn').textContent='💾 حفظ التعديلات';
+  // Scroll to form
+  document.getElementById('manage-form-header').scrollIntoView({behavior:'smooth'});
+}
+
+function cancelEditEmployee(){
+  document.getElementById('edit-emp-id').value='';
+  document.getElementById('me-id').value='';
+  document.getElementById('me-name').value='';
+  document.getElementById('me-dept').value='';
+  document.getElementById('me-newdept').value='';
+  document.getElementById('me-balance').value=30;
+  document.getElementById('me-notes').value='';
+  document.getElementById('new-dept-group').style.display='none';
+  document.getElementById('manage-form-header').innerHTML='<h2>➕ إضافة موظف جديد</h2><p>أدخل بيانات الموظف ثم اضغط حفظ</p>';
+  document.getElementById('save-emp-btn').textContent='💾 حفظ الموظف';
+}
+
+function promptDeleteEmployee(empId){
+  const list = getEmployeeList();
+  const emp = list.find(e=>e.id===empId);
+  if(!emp) return;
+  const recordCount = getRecords().filter(r=>r.emp===emp.name).length;
+  pendingDeleteName = emp.name;
+  document.getElementById('del-emp-name').textContent = `${emp.name} (${emp.dept})`;
+  document.getElementById('del-emp-records').textContent = recordCount;
+  document.getElementById('del-modal').classList.add('open');
+}
+
+function confirmDeleteEmployee(){
+  if(!pendingDeleteName) return;
+  const list = getEmployeeList().filter(e=>e.name!==pendingDeleteName);
+  saveEmployeeList(list);
+  // Delete their leave records too
+  saveRecords(getRecords().filter(r=>r.emp!==pendingDeleteName));
+  document.getElementById('del-modal').classList.remove('open');
+  showToast(`🗑️ تم حذف ${pendingDeleteName} وجميع سجلاته`,'success');
+  pendingDeleteName=null;
+  renderManageTable();
+  refreshMonthFilters();
+}
+
+function exportEmployeesCSV(){
+  const list=getEmployeeList();
+  const headers=['رقم الموظف','اسم الموظف','القسم','الرصيد السنوي','ملاحظات'];
+  const rows=list.map(e=>[e.id,e.name,e.dept,e.balance||30,e.notes||'']);
+  const csv='\uFEFF'+[headers,...rows].map(r=>r.map(c=>`"${c}"`).join(',')).join('\n');
+  const a=document.createElement('a'); a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);
+  a.download='قائمة_الموظفين.csv'; a.click();
+  showToast('📥 تم تصدير القائمة','success');
+}
+
+function resetEmployeesToDefault(){
+  if(!confirm('⚠️ سيتم إعادة قائمة الموظفين للـ 30 موظف الافتراضيين.\nهل أنت متأكد؟')) return;
+  saveEmployeeList(DEFAULT_EMPLOYEES.map(e=>({...e})));
+  renderManageTable();
+  showToast('🔄 تمت إعادة التعيين للافتراضي','success');
+}
+
+// ── BACKUP & RESTORE ──────────────────────────────────
+let pendingImportData = null;
+
+function renderBackupStats(){
+  const records = getRecords();
+  const emps = getEmployeeList();
+  const lastExport = localStorage.getItem('lastExportDate')||'—';
+  document.getElementById('bk-records').textContent = records.length;
+  document.getElementById('bk-emps').textContent = emps.length;
+  document.getElementById('bk-lastexport').textContent = lastExport;
+  document.getElementById('export-records-count').textContent = records.length + ' سجل إجازة';
+  document.getElementById('export-emps-count').textContent = emps.length + ' موظف';
+}
+
+function exportAllData(){
+  const data = {
+    version: '1.0',
+    exportDate: new Date().toLocaleDateString('ar-SA'),
+    exportTime: new Date().toLocaleTimeString('ar-SA'),
+    leaveRecords: getRecords(),
+    employeeList: getEmployeeList(),
+  };
+  const json = JSON.stringify(data, null, 2);
+  const blob = new Blob([json], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const dateStr = new Date().toISOString().slice(0,10);
+  a.href = url; a.download = `نسخة_احتياطية_الإجازات_${dateStr}.json`; a.click();
+  URL.revokeObjectURL(url);
+  const now = new Date().toLocaleDateString('ar-SA') + ' ' + new Date().toLocaleTimeString('ar-SA');
+  localStorage.setItem('lastExportDate', now);
+  showToast('✅ تم تحميل النسخة الاحتياطية بنجاح!','success');
+  renderBackupStats();
+}
+
+function handleDrop(e){
+  e.preventDefault();
+  document.getElementById('drop-zone').style.borderColor='#cbd5e1';
+  document.getElementById('drop-zone').style.background='#f8fafc';
+  const file = e.dataTransfer.files[0];
+  if(file) readImportFile(file);
+}
+
+function handleFileImport(e){
+  const file = e.target.files[0];
+  if(file) readImportFile(file);
+}
+
+function readImportFile(file){
+  if(!file.name.endsWith('.json')){ showToast('⚠️ يرجى اختيار ملف .json فقط','error'); return; }
+  const reader = new FileReader();
+  reader.onload = function(e){
+    try{
+      const data = JSON.parse(e.target.result);
+      if(!data.leaveRecords || !data.employeeList){
+        showToast('❌ الملف غير صالح أو تالف','error'); return;
+      }
+      pendingImportData = data;
+      // Show preview
+      document.getElementById('import-preview').style.display='block';
+      document.getElementById('import-actions').style.display='block';
+      document.getElementById('import-preview-content').innerHTML=`
+        <div style="background:#fff;border-radius:8px;padding:.7rem;text-align:center;border:1px solid #bbf7d0">
+          <div style="font-size:1.4rem;font-weight:900;color:#065f46">${data.leaveRecords.length}</div>
+          <div style="font-size:.78rem;color:var(--muted)">سجل إجازة</div>
+        </div>
+        <div style="background:#fff;border-radius:8px;padding:.7rem;text-align:center;border:1px solid #bbf7d0">
+          <div style="font-size:1.4rem;font-weight:900;color:#065f46">${data.employeeList.length}</div>
+          <div style="font-size:.78rem;color:var(--muted)">موظف</div>
+        </div>
+        <div style="grid-column:1/-1;font-size:.8rem;color:var(--muted)">
+          📅 تاريخ التصدير: <strong>${data.exportDate||'غير معروف'}</strong>
+          &nbsp;|&nbsp; الإصدار: ${data.version||'—'}
+        </div>`;
+      // Update drop zone UI
+      document.getElementById('drop-zone').style.borderColor='var(--green)';
+      document.getElementById('drop-zone').style.background='#f0fdf4';
+      document.getElementById('drop-zone').innerHTML=`<div style="font-size:2rem">✅</div><div style="font-weight:800;color:#065f46">${file.name}</div><div style="font-size:.8rem;color:var(--muted)">تم قراءة الملف — راجع التفاصيل أدناه</div>`;
+      showToast('✅ تم قراءة الملف بنجاح','success');
+    } catch(err){
+      showToast('❌ خطأ في قراءة الملف','error');
+    }
+  };
+  reader.readAsText(file);
+}
+
+function confirmImport(){
+  if(!pendingImportData){ showToast('لا يوجد ملف محدد','error'); return; }
+  if(!confirm('⚠️ سيتم استبدال جميع البيانات الحالية بالمستورد.\nهل أنت متأكد؟')) return;
+  saveRecords(pendingImportData.leaveRecords);
+  saveEmployeeList(pendingImportData.employeeList);
+  pendingImportData = null;
+  refreshMonthFilters();
+  // Reset drop zone
+  document.getElementById('drop-zone').style.borderColor='#cbd5e1';
+  document.getElementById('drop-zone').style.background='#f8fafc';
+  document.getElementById('drop-zone').innerHTML=`<div style="font-size:2.5rem;margin-bottom:.6rem">📂</div><div style="font-weight:800;color:var(--navy);font-size:.95rem;margin-bottom:.3rem">اسحب ملف النسخة الاحتياطية هنا</div><div style="font-size:.82rem;color:var(--muted)">أو اضغط لاختيار الملف (.json)</div>`;
+  document.getElementById('import-preview').style.display='none';
+  document.getElementById('import-actions').style.display='none';
+  document.getElementById('import-file').value='';
+  renderBackupStats();
+  showToast('🎉 تم استيراد البيانات بنجاح!','success');
+}
+
+// ── CLOUD SYNC (JSONBin.io) ───────────────────────────
+function getCloudConfig(){
+  try{ return JSON.parse(localStorage.getItem('cloudConfig')||'{}'); }catch(e){ return {}; }
+}
+function saveCloudConfig(){
+  const apiKey = document.getElementById('cfg-apikey').value.trim();
+  const binId  = document.getElementById('cfg-binid').value.trim();
+  const auto   = document.getElementById('cfg-autosync').checked;
+  if(!apiKey || !binId){ showToast('⚠️ أدخل الـ Master Key والـ BIN ID','error'); return; }
+  localStorage.setItem('cloudConfig', JSON.stringify({apiKey, binId, auto}));
+  updateSyncUI(true);
+  showToast('✅ تم حفظ الإعدادات','success');
+}
+
+function initCloudView(){
+  const cfg = getCloudConfig();
+  if(cfg.apiKey) document.getElementById('cfg-apikey').value = cfg.apiKey;
+  if(cfg.binId)  document.getElementById('cfg-binid').value  = cfg.binId;
+  if(cfg.auto){
+    document.getElementById('cfg-autosync').checked = true;
+    document.getElementById('toggle-track').style.background = '#7c3aed';
+    document.getElementById('toggle-thumb').style.right = '25px';
+  }
+  updateSyncUI(!!cfg.apiKey && !!cfg.binId);
+}
+
+document.addEventListener('change', function(e){
+  if(e.target.id==='cfg-autosync'){
+    const on = e.target.checked;
+    document.getElementById('toggle-track').style.background = on ? '#7c3aed' : '#cbd5e1';
+    document.getElementById('toggle-thumb').style.right = on ? '25px' : '3px';
+  }
+});
+
+function checkCloudConfig(){
+  const k = document.getElementById('cfg-apikey').value.trim();
+  const b = document.getElementById('cfg-binid').value.trim();
+  updateSyncUI(!!k && !!b);
+}
+
+function updateSyncUI(connected){
+  const dot  = document.getElementById('sync-status-dot');
+  const txt  = document.getElementById('sync-status-text');
+  const btns = ['btn-push','btn-pull'];
+  if(connected){
+    dot.style.background = '#10b981';
+    dot.style.boxShadow  = '0 0 0 3px #d1fae5';
+    txt.textContent = '✅ الإعدادات محفوظة — جاهز للمزامنة';
+    btns.forEach(id=>{ const b=document.getElementById(id); if(b){b.style.opacity='1';b.style.pointerEvents='auto';} });
+  } else {
+    dot.style.background = '#94a3b8';
+    dot.style.boxShadow  = 'none';
+    txt.textContent = '⚙️ أدخل الإعدادات أولاً';
+    btns.forEach(id=>{ const b=document.getElementById(id); if(b){b.style.opacity='.4';b.style.pointerEvents='none';} });
+  }
+}
+
+function setSyncLog(msg, clr='var(--muted)'){
+  const el=document.getElementById('sync-log');
+  if(el){ el.textContent=msg; el.style.color=clr; }
+}
+
+async function testConnection(){
+  const cfg = getCloudConfig();
+  if(!cfg.apiKey||!cfg.binId){ showToast('⚠️ احفظ الإعدادات أولاً','error'); return; }
+  const btn=document.getElementById('btn-test');
+  btn.textContent='⏳ جاري الاختبار...'; btn.disabled=true;
+  try{
+    const res = await fetch(`https://api.jsonbin.io/v3/b/${cfg.binId}/latest`,{
+      headers:{'X-Master-Key': cfg.apiKey}
+    });
+    if(res.ok){
+      showToast('✅ الاتصال ناجح!','success');
+      setSyncLog('الاتصال بـ JSONBin ناجح ✅', '#10b981');
+      document.getElementById('sync-status-dot').style.background='#10b981';
+      document.getElementById('sync-status-dot').style.boxShadow='0 0 0 3px #d1fae5';
+      document.getElementById('sync-status-text').textContent='✅ متصل';
+    } else {
+      showToast('❌ فشل الاتصال — تحقق من المفاتيح','error');
+      setSyncLog('فشل الاتصال — تحقق من الـ API Key والـ BIN ID ❌','#ef4444');
+    }
+  }catch(e){
+    showToast('❌ خطأ في الشبكة','error');
+    setSyncLog('خطأ في الشبكة — تأكد من الإنترنت','#ef4444');
+  }
+  btn.textContent='🔌 اختبار الاتصال'; btn.disabled=false;
+}
+
+async function syncPush(){
+  const cfg = getCloudConfig();
+  if(!cfg.apiKey||!cfg.binId){ showToast('⚠️ أعدّ الإعدادات أولاً','error'); return; }
+  setSyncLog('⏳ جاري رفع البيانات...','#7c3aed');
+  const payload = { leaveRecords: getRecords(), employeeList: getEmployeeList(), lastUpdate: new Date().toISOString() };
+  try{
+    const res = await fetch(`https://api.jsonbin.io/v3/b/${cfg.binId}`,{
+      method:'PUT',
+      headers:{'Content-Type':'application/json','X-Master-Key':cfg.apiKey},
+      body: JSON.stringify(payload)
+    });
+    if(res.ok){
+      const now=new Date().toLocaleTimeString('ar-SA');
+      localStorage.setItem('lastSyncTime','رُفع '+now);
+      document.getElementById('sync-last-time').textContent='آخر رفع: '+now;
+      setSyncLog('✅ تم رفع البيانات بنجاح — '+now,'#10b981');
+      showToast('✅ تم رفع البيانات على السحابة','success');
+    } else { throw new Error('فشل'); }
+  }catch(e){
+    setSyncLog('❌ فشل الرفع — تحقق من الاتصال','#ef4444');
+    showToast('❌ فشل رفع البيانات','error');
+  }
+}
+
+async function syncPull(){
+  const cfg = getCloudConfig();
+  if(!cfg.apiKey||!cfg.binId){ showToast('⚠️ أعدّ الإعدادات أولاً','error'); return; }
+  setSyncLog('⏳ جاري سحب البيانات...','#3b82f6');
+  try{
+    const res = await fetch(`https://api.jsonbin.io/v3/b/${cfg.binId}/latest`,{
+      headers:{'X-Master-Key':cfg.apiKey}
+    });
+    if(!res.ok) throw new Error('فشل');
+    const json = await res.json();
+    const data = json.record;
+    if(!data.leaveRecords||!data.employeeList) throw new Error('بيانات غير صالحة');
+    if(!confirm(`⬇️ سيتم استبدال بياناتك الحالية بأحدث نسخة من السحابة.\nآخر تحديث: ${data.lastUpdate||'غير معروف'}\nهل تريد المتابعة؟`)) return;
+    saveRecords(data.leaveRecords);
+    saveEmployeeList(data.employeeList);
+    refreshMonthFilters();
+    const now=new Date().toLocaleTimeString('ar-SA');
+    document.getElementById('sync-last-time').textContent='آخر سحب: '+now;
+    setSyncLog('✅ تم سحب البيانات بنجاح — '+now,'#10b981');
+    showToast('✅ تم تحديث البيانات من السحابة','success');
+  }catch(e){
+    setSyncLog('❌ فشل السحب — '+e.message,'#ef4444');
+    showToast('❌ فشل سحب البيانات','error');
+  }
+}
+
+// Auto-sync hook: called after every save
+function autoSync(){
+  const cfg=getCloudConfig();
+  if(cfg.auto && cfg.apiKey && cfg.binId) syncPush();
+}
+
+
+// ── SALARY & HIRE DATE ───────────────────────────────
+function calcServiceYears(hireDate){
+  if(!hireDate) return 0;
+  const hire = new Date(hireDate);
+  const now  = new Date();
+  return Math.max(0, (now - hire) / (365.25 * 24 * 3600 * 1000));
+}
+
+function calcBalanceFromHire(){
+  const hd = document.getElementById('me-hiredate').value;
+  if(!hd) return;
+  const yrs = calcServiceYears(hd);
+  document.getElementById('me-years').value = yrs.toFixed(1) + ' سنة';
+  document.getElementById('me-balance').value = yrs >= 5 ? 30 : 21;
+}
+
+function initSalaryFilters(){
+  const se = document.getElementById('sal-emp');
+  const emps = getEmployeeList();
+  // Always rebuild the dropdown
+  while(se.options.length > 1) se.remove(1);
+  emps.forEach(e => {
+    const o = document.createElement('option');
+    o.value = e.name; o.textContent = e.name; se.appendChild(o);
+  });
+  const months = getMonths(getRecords());
+  const sm = document.getElementById('sal-month');
+  if(sm){
+    while(sm.options.length > 1) sm.remove(1);
+    months.forEach(m => {
+      const o = document.createElement('option'); o.value = m; o.textContent = m; sm.appendChild(o);
+    });
+  }
+}
+
+function calcDeductions(empName, records, filterMonth){
+  const emp    = getEmployeeList().find(e => e.name === empName) || {};
+  const total  = parseFloat(emp.totalSalary) || 0;
+  const basic  = parseFloat(emp.basicSalary) || 0;
+  const dayVal = total > 0 ? total / 30 : 0;
+  const fRec   = records.filter(r => r.emp === empName && (!filterMonth || r.month === filterMonth));
+  // غياب فقط
+  const absent = fRec.filter(r => r.leavetype === 'غياب').length;
+  const deduct = parseFloat((absent * dayVal).toFixed(2));
+  const net    = total > 0 ? parseFloat(Math.max(0, total - deduct).toFixed(2)) : 0;
+  return { absent, dayVal, deduct, net, total, basic };
+}
+
+function renderSalary(){
+  const records = getRecords();
+  const fEmp   = document.getElementById('sal-emp')?.value   || '';
+  const fMonth = document.getElementById('sal-month')?.value || '';
+  const emps   = getEmployeeList().filter(e => !fEmp || e.name === fEmp);
+  const tbody  = document.getElementById('salary-tbody');
+
+  if(!emps.length){
+    tbody.innerHTML = '<tr><td colspan="13" style="text-align:center;padding:2rem;color:var(--muted)">لا يوجد موظفون</td></tr>';
+    return;
+  }
+
+  const fmtMoney = n => (!n || n === 0) ? '—' : parseFloat(n).toLocaleString('ar-SA',{minimumFractionDigits:2,maximumFractionDigits:2}) + ' ر';
+
+  tbody.innerHTML = emps.map((e, i) => {
+    const yrs  = e.hireDate ? calcServiceYears(e.hireDate) : null;
+    const yLbl = yrs !== null ? yrs.toFixed(1) + ' سنة' : '—';
+    const yClr = yrs !== null && yrs >= 5 ? 'var(--green)' : 'var(--orange)';
+    const bal  = e.balance || 21;
+    const d    = calcDeductions(e.name, records, fMonth);
+
+    const badge = !d.total
+      ? '<span style="background:#f1f5f9;color:#64748b;border-radius:6px;padding:.2rem .6rem;font-size:.75rem;font-weight:700">لم يُدخل الراتب</span>'
+      : d.deduct === 0
+        ? '<span style="background:#d1fae5;color:#065f46;border-radius:6px;padding:.2rem .6rem;font-size:.75rem;font-weight:700">✅ لا خصومات</span>'
+        : '<span style="background:#fee2e2;color:#dc2626;border-radius:6px;padding:.2rem .6rem;font-size:.75rem;font-weight:700">⚠️ يوجد خصم</span>';
+    const rowBg = d.deduct > 0 ? 'background:linear-gradient(90deg,#fff5f5,#fff)' : '';
+
+    // 13 columns must match header exactly:
+    // # | الموظف | القسم | تاريخ التعيين | سنوات الخدمة | الرصيد السنوي |
+    // الراتب الأساسي | الراتب الإجمالي | قيمة اليوم | أيام الغياب |
+    // مبلغ الخصم | صافي الراتب | الحالة
+    return '<tr style="' + rowBg + '">'
+      + '<td style="color:var(--muted);font-size:.82rem">'                      + (i+1) + '</td>'
+      + '<td style="font-weight:800;text-align:right;color:var(--navy)">'       + e.name + '</td>'
+      + '<td style="color:var(--muted)">'                                       + e.dept + '</td>'
+      + '<td style="font-size:.78rem;color:var(--muted)">'                      + (e.hireDate || '—') + '</td>'
+      + '<td style="color:' + yClr + ';font-weight:700">'                       + yLbl + '</td>'
+      + '<td style="color:var(--green);font-weight:800;text-align:center">'     + bal + ' يوم</td>'
+      + '<td style="font-weight:700">'                                           + fmtMoney(d.basic) + '</td>'
+      + '<td style="font-weight:800;color:var(--navy)">'                        + fmtMoney(d.total) + '</td>'
+      + '<td style="color:var(--muted);font-size:.88rem">'                      + (d.dayVal > 0 ? d.dayVal.toFixed(2) + ' ر' : '—') + '</td>'
+      + '<td style="color:var(--red);font-weight:900;font-size:1.05rem;text-align:center">' + (d.absent > 0 ? d.absent : '—') + '</td>'
+      + '<td style="font-weight:900;color:var(--red);font-size:1.05rem">'       + (d.deduct > 0 ? fmtMoney(d.deduct) : '—') + '</td>'
+      + '<td style="font-weight:900;font-size:1.05rem;color:' + (d.deduct>0?'var(--red)':(d.total>0?'var(--green)':'var(--muted)')) + '">' + fmtMoney(d.net) + '</td>'
+      + '<td>' + badge + '</td>'
+      + '</tr>';
+  }).join('');
+}
+
+function exportSalaryCSV(){
+  const records = getRecords();
+  const fMonth  = document.getElementById('sal-month')?.value || '';
+  const emps    = getEmployeeList();
+  const headers = ['اسم الموظف','القسم','تاريخ التعيين','سنوات الخدمة','الرصيد السنوي','الراتب الأساسي','الراتب الإجمالي','قيمة اليوم','أيام الغياب','مبلغ الخصم','صافي الراتب'];
+  const rows = emps.map(e => {
+    const yrs = e.hireDate ? calcServiceYears(e.hireDate).toFixed(1) : '—';
+    const d   = calcDeductions(e.name, records, fMonth);
+    return [e.name, e.dept, e.hireDate||'—', yrs, e.balance||21, d.basic, d.total, d.dayVal.toFixed(2), d.absent, d.deduct.toFixed(2), d.net.toFixed(2)];
+  });
+  const csv = '\uFEFF' + [headers,...rows].map(r=>r.map(c=>'"'+c+'"').join(',')).join('\n');
+  const a = document.createElement('a');
+  a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+  a.download = 'كشف_رواتب_' + (fMonth||'كامل') + '.csv';
+  a.click();
+  showToast('📥 تم تصدير كشف الرواتب','success');
+}
+
+
+// Override saveEmployee to include new fields
+const _origSaveEmployee = saveEmployee;
+function saveEmployee(){
+  const editId     = document.getElementById('edit-emp-id').value;
+  const empId      = document.getElementById('me-id').value.trim();
+  const empName    = document.getElementById('me-name').value.trim();
+  let dept         = document.getElementById('me-dept').value;
+  if(dept === '__new__') dept = document.getElementById('me-newdept').value.trim();
+  const hireDate   = document.getElementById('me-hiredate')?.value || '';
+  const balance    = parseInt(document.getElementById('me-balance').value) || 21;
+  const basicSalary  = parseFloat(document.getElementById('me-basic-salary')?.value) || 0;
+  const totalSalary  = parseFloat(document.getElementById('me-total-salary')?.value) || 0;
+  const notes      = document.getElementById('me-notes').value.trim();
+  if(!empId||!empName||!dept){ showToast('⚠️ رقم الموظف والاسم والقسم مطلوبة','error'); return; }
+  const list = getEmployeeList();
+  if(editId){
+    const idx = list.findIndex(e => e.id === editId);
+    if(idx === -1){ showToast('❌ الموظف غير موجود','error'); return; }
+    const oldName = list[idx].name;
+    if(oldName !== empName){
+      const recs = getRecords(); recs.forEach(r=>{ if(r.emp===oldName){ r.emp=empName; r.dept=dept; } }); saveRecords(recs);
+    }
+    list[idx] = {id:empId, name:empName, dept, hireDate, balance, basicSalary, totalSalary, notes};
+    saveEmployeeList(list);
+    showToast('✅ تم تعديل بيانات ' + empName, 'success');
+  } else {
+    if(list.find(e=>e.id===empId)){ showToast('⚠️ رقم الموظف مستخدم مسبقاً','error'); return; }
+    if(list.find(e=>e.name===empName)){ showToast('⚠️ اسم الموظف مستخدم مسبقاً','error'); return; }
+    list.push({id:empId, name:empName, dept, hireDate, balance, basicSalary, totalSalary, notes});
+    saveEmployeeList(list);
+    showToast('✅ تم إضافة ' + empName + ' بنجاح', 'success');
+  }
+  cancelEditEmployee();
+  renderManageTable();
+  autoSync();
+}
+
+// Override editEmployee to fill new fields
+const _origEditEmployee = editEmployee;
+function editEmployee(empId){
+  const list = getEmployeeList();
+  const emp = list.find(e => e.id === empId);
+  if(!emp) return;
+  document.getElementById('edit-emp-id').value = emp.id;
+  document.getElementById('me-id').value = emp.id;
+  document.getElementById('me-name').value = emp.name;
+  if(document.getElementById('me-hiredate')) document.getElementById('me-hiredate').value = emp.hireDate || '';
+  if(document.getElementById('me-basic-salary')) document.getElementById('me-basic-salary').value = emp.basicSalary || '';
+  if(document.getElementById('me-total-salary')) document.getElementById('me-total-salary').value = emp.totalSalary || '';
+  document.getElementById('me-balance').value = emp.balance || 21;
+  document.getElementById('me-notes').value = emp.notes || '';
+  if(emp.hireDate && document.getElementById('me-years')){
+    document.getElementById('me-years').value = calcServiceYears(emp.hireDate).toFixed(1) + ' سنة';
+  }
+  const deptSel = document.getElementById('me-dept');
+  const exists = [...deptSel.options].find(o => o.value === emp.dept);
+  if(exists){ deptSel.value = emp.dept; }
+  else { deptSel.value = '__new__'; document.getElementById('new-dept-group').style.display='block'; document.getElementById('me-newdept').value = emp.dept; }
+  document.getElementById('manage-form-header').innerHTML = '<h2>✏️ تعديل بيانات موظف</h2><p>' + emp.name + '</p>';
+  document.getElementById('save-emp-btn').textContent = '💾 حفظ التعديلات';
+  document.getElementById('manage-form-header').scrollIntoView({behavior:'smooth'});
+}
+
+// Override renderManageTable for new columns
+const _origRenderManageTable = renderManageTable;
+function renderManageTable(){
+  const list   = getEmployeeList();
+  const fDept  = document.getElementById('manage-filter-dept')?.value || '';
+  const search = (document.getElementById('manage-search')?.value || '').trim();
+  const filtered = list.filter(e => (!fDept||e.dept===fDept) && (!search||e.name.includes(search)||e.id.includes(search)));
+  document.getElementById('emp-count').textContent = list.length;
+  const allDepts = [...new Set(list.map(e=>e.dept))];
+  const mfd = document.getElementById('manage-filter-dept');
+  if(mfd){ const cur=mfd.value; while(mfd.options.length>1) mfd.remove(1); allDepts.forEach(d=>{const o=document.createElement('option');o.value=d;o.textContent=d;mfd.appendChild(o);}); mfd.value=cur; }
+  const tbody = document.getElementById('manage-tbody');
+  if(!filtered.length){ tbody.innerHTML='<tr><td colspan="9"><div class="empty"><div class="empty-text">لا توجد نتائج</div></div></td></tr>'; return; }
+  tbody.innerHTML = filtered.map((e,i) => {
+    const yrs   = e.hireDate ? calcServiceYears(e.hireDate) : null;
+    const yLbl  = yrs !== null ? yrs.toFixed(1)+' س' : '—';
+    const yClr  = yrs !== null && yrs >= 5 ? 'var(--green)' : 'var(--orange)';
+    const bClr  = (e.balance||21) >= 30 ? 'var(--green)' : 'var(--orange)';
+    const bFmt  = e.basicSalary ? e.basicSalary.toLocaleString('ar-SA')+' ر' : '—';
+    const tFmt  = e.totalSalary ? e.totalSalary.toLocaleString('ar-SA')+' ر' : '—';
+    return '<tr id="emp-row-' + e.id + '">'
+      + '<td style="color:var(--muted);font-size:.82rem">' + (i+1) + '</td>'
+      + '<td><span class="badge badge-blue">' + e.id + '</span></td>'
+      + '<td style="font-weight:700;text-align:right">' + e.name + '</td>'
+      + '<td>' + e.dept + '</td>'
+      + '<td style="font-size:.78rem;color:var(--muted)">' + (e.hireDate||'—') + '</td>'
+      + '<td style="color:' + yClr + ';font-weight:700">' + yLbl + '</td>'
+      + '<td style="color:' + bClr + ';font-weight:800">' + (e.balance||21) + ' يوم</td>'
+      + '<td style="font-weight:700">' + bFmt + '</td>'
+      + '<td style="color:var(--green);font-weight:700">' + tFmt + '</td>'
+      + '<td><button onclick="editEmployee(' + "'" + e.id + "'" + ')" style="background:#dbeafe;color:#1d4ed8;border:none;border-radius:7px;padding:.3rem .7rem;cursor:pointer;font-family:Tajawal,sans-serif;font-size:.82rem;font-weight:700">✏️ تعديل</button></td>'
+      + '<td><button onclick="promptDeleteEmployee(' + "'" + e.id + "'" + ')" style="background:#fee2e2;color:#dc2626;border:none;border-radius:7px;padding:.3rem .7rem;cursor:pointer;font-family:Tajawal,sans-serif;font-size:.82rem;font-weight:700">🗑️ حذف</button></td>'
+      + '</tr>';
+  }).join('');
+}
+
+// ── LOGIN SYSTEM ──────────────────────────────────────
+const DEFAULT_USERS = [
+  {username:'admin', password:'admin123', role:'admin', fullname:'مدير النظام'},
+  {username:'hr',    password:'hr2026',   role:'editor', fullname:'الموارد البشرية'},
+  {username:'viewer',password:'view2026', role:'viewer', fullname:'مشاهد'},
+];
+function getUsers(){ try{ return JSON.parse(localStorage.getItem('sysUsers')||'null') || DEFAULT_USERS.map(u=>({...u})); }catch(e){ return DEFAULT_USERS.map(u=>({...u})); } }
+function saveUsers(u){ localStorage.setItem('sysUsers',JSON.stringify(u)); }
+function getCurrentUser(){ try{ return JSON.parse(sessionStorage.getItem('cu')||'null'); }catch(e){ return null; } }
+function setCurrentUser(u){ sessionStorage.setItem('cu',JSON.stringify(u)); }
+const ROLE_LABELS = {admin:'أدمن', editor:'محرر', viewer:'مشاهد'};
+const ROLE_COLORS = {admin:'#dc2626', editor:'#059669', viewer:'#2563a8'};
+
+function doLogin(){
+  const un = document.getElementById('login-user').value.trim();
+  const pw = document.getElementById('login-pass').value;
+  const user = getUsers().find(u => u.username===un && u.password===pw);
+  if(!user){
+    const err = document.getElementById('login-error');
+    err.classList.add('show'); setTimeout(()=>err.classList.remove('show'),3000);
+    document.getElementById('login-pass').value=''; return;
+  }
+  setCurrentUser(user);
+  document.getElementById('login-screen').classList.add('hidden');
+  document.getElementById('cur-user-lbl').textContent = user.fullname||user.username;
+  const rb = document.getElementById('cur-role-badge');
+  rb.textContent = ROLE_LABELS[user.role]||user.role;
+  rb.style.background = ROLE_COLORS[user.role]||'#64748b';
+  if(user.role==='admin') document.getElementById('btn-users-mgr').style.display='flex';
+  if(user.role==='viewer'){ document.querySelectorAll('.btn-primary,.btn-danger').forEach(b=>{b.style.opacity='.4';b.style.pointerEvents='none';}); }
+  showToast('مرحباً ' + (user.fullname||user.username) + ' 👋','success');
+}
+
+function doLogout(){
+  if(!confirm('هل تريد تسجيل الخروج؟')) return;
+  sessionStorage.removeItem('cu');
+  document.getElementById('login-screen').classList.remove('hidden');
+  document.getElementById('login-user').value='';
+  document.getElementById('login-pass').value='';
+  document.getElementById('cur-user-lbl').textContent='—';
+  document.getElementById('cur-role-badge').textContent='';
+  document.getElementById('btn-users-mgr').style.display='none';
+}
+
+function openUsersModal(){
+  renderUsersList();
+  document.getElementById('users-modal').classList.add('open');
+}
+function closeUsersModal(){
+  document.getElementById('users-modal').classList.remove('open');
+}
+
+function renderUsersList(){
+  const users = getUsers();
+  document.getElementById('users-list').innerHTML = users.map((u,i) =>
+    '<div style="display:flex;align-items:center;justify-content:space-between;padding:.65rem .9rem;border-radius:9px;background:' + (i%2===0?'#f8fafc':'#fff') + ';margin-bottom:.35rem;border:1px solid #f1f5f9">'
+    + '<div style="display:flex;align-items:center;gap:.7rem">'
+    + '<div style="width:34px;height:34px;border-radius:50%;background:' + (ROLE_COLORS[u.role]||'#64748b') + ';display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800">' + (u.fullname||u.username).charAt(0) + '</div>'
+    + '<div><div style="font-weight:800;font-size:.87rem">' + (u.fullname||u.username) + '</div>'
+    + '<div style="font-size:.74rem;color:#64748b">@' + u.username + ' | <span style="color:' + (ROLE_COLORS[u.role]||'#64748b') + ';font-weight:700">' + (ROLE_LABELS[u.role]||u.role) + '</span></div></div></div>'
+    + '<div style="display:flex;gap:.35rem">'
+    + '<button onclick="resetUserPass(' + "'" + u.username + "'" + ')" style="background:#dbeafe;color:#1d4ed8;border:none;border-radius:7px;padding:.28rem .65rem;cursor:pointer;font-family:Tajawal,sans-serif;font-size:.78rem;font-weight:700">🔑 كلمة المرور</button>'
+    + (u.username!=='admin' ? '<button onclick="deleteUser(' + "'" + u.username + "'" + ')" style="background:#fee2e2;color:#dc2626;border:none;border-radius:7px;padding:.28rem .65rem;cursor:pointer;font-family:Tajawal,sans-serif;font-size:.78rem;font-weight:700">🗑️ حذف</button>' : '<span style="font-size:.72rem;color:#94a3b8;padding:.3rem .4rem">محمي</span>')
+    + '</div></div>'
+  ).join('');
+}
+
+function addUser(){
+  const un = document.getElementById('nu-name').value.trim();
+  const pw = document.getElementById('nu-pass').value;
+  const role = document.getElementById('nu-role').value;
+  const fn = document.getElementById('nu-fullname').value.trim();
+  if(!un||!pw){ showToast('⚠️ اسم المستخدم وكلمة المرور مطلوبة','error'); return; }
+  const users = getUsers();
+  if(users.find(u=>u.username===un)){ showToast('⚠️ اسم المستخدم مستخدم مسبقاً','error'); return; }
+  users.push({username:un, password:pw, role, fullname:fn});
+  saveUsers(users);
+  ['nu-name','nu-pass','nu-fullname'].forEach(id=>document.getElementById(id).value='');
+  renderUsersList();
+  showToast('✅ تم إضافة @' + un,'success');
+}
+
+function deleteUser(un){
+  if(!confirm('حذف المستخدم @' + un + '؟')) return;
+  saveUsers(getUsers().filter(u=>u.username!==un));
+  renderUsersList();
+  showToast('🗑️ تم الحذف','success');
+}
+
+function resetUserPass(un){
+  const np = prompt('كلمة المرور الجديدة لـ @' + un + ':');
+  if(!np||!np.trim()) return;
+  const users = getUsers(); const idx = users.findIndex(u=>u.username===un);
+  if(idx===-1) return;
+  users[idx].password = np.trim(); saveUsers(users);
+  showToast('✅ تم تغيير كلمة مرور @' + un,'success');
+}
+
+// Override showView to include salary tab
+const _origShowView = showView;
+function showView(v){
+  document.querySelectorAll('.view').forEach(e=>e.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(e=>e.classList.remove('active'));
+  document.getElementById('view-'+v).classList.add('active');
+  const tabs=['dashboard','entry','log','employees','reports','salary','manage','backup','cloud'];
+  document.querySelectorAll('.nav-tab')[tabs.indexOf(v)]?.classList.add('active');
+  if(v==='dashboard') renderDashboard();
+  if(v==='log') renderLog();
+  if(v==='employees') renderEmployees();
+  if(v==='reports') renderReports();
+  if(v==='salary'){ initSalaryFilters(); renderSalary(); }
+  if(v==='manage') renderManageTable();
+  if(v==='backup') renderBackupStats();
+  if(v==='cloud') initCloudView();
+}
+
+// ── INIT ───────────────────────────────────────────────
+initDropdowns();
+renderDashboard();
+</script>
+
+<!-- ═══ LOGIN SCREEN ═══ -->
+<style>
+#login-screen{position:fixed;inset:0;z-index:9999;background:linear-gradient(135deg,#0d1b2a 0%,#1a3c5e 60%,#0d1b2a 100%);display:flex;align-items:center;justify-content:center;font-family:'Tajawal',sans-serif;}
+#login-screen.hidden{display:none;}
+.login-card{background:#fff;border-radius:20px;padding:2.5rem 2rem;width:90%;max-width:400px;box-shadow:0 25px 60px rgba(0,0,0,.55);text-align:center;animation:popIn .4s cubic-bezier(.34,1.56,.64,1);}
+.login-co{font-size:1.15rem;font-weight:900;color:#1a3c5e;margin-bottom:.2rem;}
+.login-sub{font-size:.82rem;color:#64748b;}
+.login-year{display:inline-block;background:#1a3c5e;color:#f59e0b;font-size:.78rem;font-weight:700;padding:.15rem .9rem;border-radius:20px;margin:.5rem 0 1.4rem;}
+.login-ttl{font-size:1.05rem;font-weight:800;color:#0d1b2a;margin-bottom:1.1rem;}
+.login-err{background:#fee2e2;color:#dc2626;border-radius:8px;padding:.55rem .9rem;font-size:.85rem;font-weight:600;margin-bottom:.9rem;display:none;}
+.login-err.show{display:block;}
+.login-grp{margin-bottom:.9rem;text-align:right;}
+.login-grp label{display:block;font-size:.8rem;font-weight:700;color:#1e293b;margin-bottom:.35rem;}
+.login-grp input{width:100%;padding:.68rem 1rem;border:2px solid #e2e8f0;border-radius:10px;font-family:'Tajawal',sans-serif;font-size:.95rem;outline:none;transition:border .2s;}
+.login-grp input:focus{border-color:#3b82f6;box-shadow:0 0 0 3px rgba(59,130,246,.15);}
+.login-btn{width:100%;padding:.82rem;background:linear-gradient(135deg,#1a3c5e,#2563a8);color:#fff;border:none;border-radius:10px;font-family:'Tajawal',sans-serif;font-size:1rem;font-weight:800;cursor:pointer;transition:all .2s;}
+.login-btn:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(37,99,168,.4);}
+.login-foot{font-size:.74rem;color:#94a3b8;margin-top:.9rem;}
+#users-modal{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:10000;display:none;align-items:center;justify-content:center;backdrop-filter:blur(4px);}
+#users-modal.open{display:flex;}
+.um-box{background:#fff;border-radius:18px;width:92%;max-width:540px;max-height:86vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.3);animation:popIn .3s cubic-bezier(.34,1.56,.64,1);}
+.um-hdr{background:linear-gradient(135deg,#0d1b2a,#1a3c5e);padding:1.1rem 1.4rem;color:#fff;border-radius:18px 18px 0 0;display:flex;align-items:center;justify-content:space-between;}
+.um-body{padding:1.4rem;}
+</style>
+
+<div id="login-screen">
+  <div class="login-card">
+    <div class="login-co">الشبكة الذهبية لتأجير السيارات</div>
+    <div class="login-sub">نظام إدارة الإجازات والغياب</div>
+    <div class="login-year">عام 2026</div>
+    <hr style="border:none;border-top:1px solid #e2e8f0;margin-bottom:1.2rem">
+    <div class="login-ttl">🔐 تسجيل الدخول</div>
+    <div class="login-err" id="login-error">❌ اسم المستخدم أو كلمة المرور غير صحيحة</div>
+    <div class="login-grp">
+      <label>اسم المستخدم</label>
+      <input type="text" id="login-user" placeholder="أدخل اسم المستخدم" onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <div class="login-grp">
+      <label>كلمة المرور</label>
+      <input type="password" id="login-pass" placeholder="أدخل كلمة المرور" onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <button class="login-btn" onclick="doLogin()">دخول ←</button>
+    <div class="login-foot">نظام داخلي خاص — الشبكة الذهبية لتأجير السيارات</div>
+  </div>
+</div>
+
+<!-- ═══ USERS MODAL ═══ -->
+<div id="users-modal" onclick="if(event.target.id==='users-modal')closeUsersModal()">
+  <div class="um-box">
+    <div class="um-hdr">
+      <div style="font-size:1.05rem;font-weight:800">👥 إدارة المستخدمين</div>
+      <button onclick="closeUsersModal()" style="background:none;border:none;color:#fff;font-size:1.4rem;cursor:pointer">✕</button>
+    </div>
+    <div class="um-body">
+      <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:1rem;margin-bottom:1rem">
+        <div style="font-weight:800;color:#065f46;font-size:.88rem;margin-bottom:.7rem">➕ إضافة مستخدم جديد</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:.6rem;margin-bottom:.6rem">
+          <div><label style="font-size:.75rem;font-weight:700;display:block;margin-bottom:.25rem">اسم المستخدم</label><input id="nu-name" type="text" placeholder="username" style="width:100%;padding:.45rem .7rem;border:1.5px solid #e2e8f0;border-radius:7px;font-family:'Tajawal',sans-serif;font-size:.88rem;outline:none"></div>
+          <div><label style="font-size:.75rem;font-weight:700;display:block;margin-bottom:.25rem">كلمة المرور</label><input id="nu-pass" type="password" placeholder="••••••" style="width:100%;padding:.45rem .7rem;border:1.5px solid #e2e8f0;border-radius:7px;font-family:'Tajawal',sans-serif;font-size:.88rem;outline:none"></div>
+          <div><label style="font-size:.75rem;font-weight:700;display:block;margin-bottom:.25rem">الصلاحية</label><select id="nu-role" style="width:100%;padding:.45rem .7rem;border:1.5px solid #e2e8f0;border-radius:7px;font-family:'Tajawal',sans-serif;font-size:.88rem;outline:none;background:#fff"><option value="viewer">مشاهدة</option><option value="editor">تعديل</option><option value="admin">أدمن</option></select></div>
+        </div>
+        <div style="margin-bottom:.6rem"><label style="font-size:.75rem;font-weight:700;display:block;margin-bottom:.25rem">الاسم الكامل</label><input id="nu-fullname" type="text" placeholder="مثال: مدير الموارد البشرية" style="width:100%;padding:.45rem .7rem;border:1.5px solid #e2e8f0;border-radius:7px;font-family:'Tajawal',sans-serif;font-size:.88rem;outline:none"></div>
+        <button onclick="addUser()" style="background:#059669;color:#fff;border:none;border-radius:7px;padding:.45rem 1.1rem;cursor:pointer;font-family:'Tajawal',sans-serif;font-weight:700;font-size:.83rem">➕ إضافة</button>
+      </div>
+      <div style="font-weight:800;color:#0d1b2a;margin-bottom:.7rem;font-size:.88rem">📋 المستخدمون الحاليون</div>
+      <div id="users-list"></div>
+    </div>
+  </div>
+</div>
+</body>
+</html>
